@@ -2,11 +2,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../Views/Home.vue'
 import MailsendVM from '../views/MailsendVM.vue'
+import MailsendSale from '../views/MailsendSale.vue'
 
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
-  { path: '/MailsendVM', name:'Mail-All', component: MailsendVM}
+  { path: '/MailsendVM', name:'MailsendVM', component: MailsendVM},
+  { path: '/MailsendSale', name:'MailsendSale', component: MailsendSale}
 ]
 
 const router = createRouter({
