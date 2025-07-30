@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [vue(),tailwindcss()],
   resolve :{
     alias : {
-      '@View' : '/src/views'
+      '@' : path.resolve(__dirname,'./src')
     }
   },
   server:{
