@@ -1,6 +1,6 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../Views/Home.vue'
+import Home from '@/views/Home.vue'
 import MailsendVM from '../views/MailsendVM.vue'
 import MailsendSale from '../views/MailsendSale.vue'
 
