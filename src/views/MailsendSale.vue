@@ -50,7 +50,7 @@
       for (const row of inputs.value) {
         if (row.trim() !== '') {
           const columnsParam = columns.join(',');
-          const url = `http://localhost:5000/sheet?row=${row.trim()}&columns=${encodeURIComponent(columnsParam)}`;
+          const url = `https://backend-tools-provision.onrender.com/sheet?row=${row.trim()}&columns=${encodeURIComponent(columnsParam)}`;
           const res = await fetch(url);
           if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
           const data = await res.json();
