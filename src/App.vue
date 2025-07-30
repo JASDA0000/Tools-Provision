@@ -9,7 +9,7 @@ const showSidebar = ref(false)
   <div class="flex h-screen">
     <Sidebar :show="showSidebar" @toggle="showSidebar = !showSidebar" />
 
-    <div class="flex-1 bg-[#242424] min-h-screen overflow-auto">
+    <div class="flex-1 bg-[#eceff1] min-h-screen overflow-auto text-black">
       <router-view />
     </div>
   </div>
