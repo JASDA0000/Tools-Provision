@@ -54,7 +54,7 @@
           const res = await fetch(url);
           if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
           const data = await res.json();
-          console.log(data);
+          // console.log(data);
           // data จะเป็น object เช่น { A10000: "val1", C10000: "val2", ... }
           // แปลงเป็น array หรือ object ตามต้องการก่อนเก็บ
           const rowData = columns.map(col => data[`${col}${row.trim()}`] || '-')
@@ -73,12 +73,15 @@
   <div class="">
     <p class="font-bold text-3xl">📋 Tools-Provision</p>
     <div class="bg-[#fff] text-black p-4 shadow-xs rounded-2xl w-full mt-2">
-      <label>ประเภทเอกสาร : </label>
-      <select v-model="selectTypeDoc" class="text-black bg-white ">
-        <option value="poc">POC</option>
-        <option value="newservice">New Service</option>
-        <option value="change">Change</option>
-      </select>
+      <div class="text-left">
+        <label class="text-xl">ประเภทเอกสาร : </label>
+        <select v-model="selectTypeDoc" class="text-black bg-white border-2 rounded-xl p-2">
+          <option value="">กรุณาเลือก</option>
+          <option value="poc">POC</option>
+          <option value="newservice">New Service</option>
+          <option value="change">Change</option>
+        </select>
+      </div>
       <div v-for="(item, index) in inputs" :key="index" class="flex items-center gap-2 mt-2">
         <label class="text-xl">แถว:</label>
         <input v-model="inputs[index]" class="bg-white rounded-xl text-black text-xl p-2 w-full border-2"

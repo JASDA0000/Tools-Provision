@@ -38,7 +38,7 @@ async function fetchData() {
                 if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
                 const data = await res.json();
-                console.log(data);
+                // console.log(data);
 
                 const rowValues = columns.map(col => data[`${col}${row.trim()}`] || '-');
                 rows.value.push(rowValues);
@@ -70,15 +70,23 @@ function validateDropdown() {
         <p class="text-2xl font-bold">Loop mail ส่งเครื่อง POC ✉️</p>
         <div class="text-left">
             <label for="" class="text-xl">คู่การเข้าใช้งาน : </label>
-            <select v-model="selectGuide" @change="validateDropdown" class="bg-white text-black" >
+            <select v-model="selectGuide" @change="validateDropdown" class="bg-white text-black rounded-xl border-2 p-2" >
                 <option value="">กรุณาเลือก</option>
                 <option value="1">AHV</option>
                 <option value="2">Cloud Open Source (Proxmox)</option>
             </select>
         </div>
+        <div class="text-left">
+            <label for="" class="text-xl">Portal : </label>
+            <select v-model="selectGuide" @change="" class="bg-white text-black rounded-xl border-2 p-2 " >
+                <option value="">กรุณาเลือก</option>
+                <option value="1"></option>
+                <option value="2"></option>
+            </select>
+        </div>
         <div v-for="(item, index) in inputs" :key="index" class="flex items-center gap-2">
         <label class="text-xl">แถว:</label>
-        <input v-model="inputs[index]" class="bg-white rounded-xl text-black text-xl p-2 w-full"
+        <input v-model="inputs[index]" class="bg-white rounded-xl text-black text-xl p-2 w-full border-2"
           placeholder="เช่น 10000" />
            <template v-if="index === inputs.length - 1">
     <button @click="addInput" class="bg-green-500 text-white px-3 py-1 rounded-xl hover:opacity-70">+</button>
