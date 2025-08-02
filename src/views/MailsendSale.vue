@@ -54,7 +54,7 @@
           const res = await fetch(url);
           if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
           const data = await res.json();
-          // console.log(data);
+          // console.log(data); 
           // data จะเป็น object เช่น { A10000: "val1", C10000: "val2", ... }
           // แปลงเป็น array หรือ object ตามต้องการก่อนเก็บ
           const rowData = columns.map(col => data[`${col}${row.trim()}`] || '-')

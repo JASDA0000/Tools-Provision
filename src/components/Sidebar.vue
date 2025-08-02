@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { Home, Info, Mail, Phone, Table } from 'lucide-vue-next'
+import { Home, Info, Mail, Phone, Table,Lock } from 'lucide-vue-next'
 </script>
 
 <template>
@@ -18,6 +18,7 @@ import { Home, Info, Mail, Phone, Table } from 'lucide-vue-next'
           <router-link to="/" class="hover:bg-gray-700 p-2 rounded flex items-center gap-2"><Home class="w-5 h-5" /> หน้าแรก</router-link>
           <router-link to="/MailsendVM" class="hover:bg-gray-700 p-2 rounded flex items-center gap-2"><Mail class="w-5 h-5" /> เมลส่งเครื่อง</router-link>
           <router-link to="/MailsendSale" class="hover:bg-gray-700 p-2 rounded flex items-center gap-2"><Table class="w-5 h-5" />ตารางเครื่อง</router-link>
+          <router-link to="/PasswordGen" class="hover:bg-gray-700 p-2 rounded flex items-center gap-2"><Lock class="w-5 h-5" />สุ่มรหัสผ่าน</router-link>
         </nav>
       </div>
     </transition>
