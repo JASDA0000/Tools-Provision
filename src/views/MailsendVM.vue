@@ -7,7 +7,7 @@ const selectGuide = ref('');
 const portalguide = ref();
 const portal = ref();
 const isLoading = ref(false); 
-const columns = ['C', 'O', 'P', 'Q', 'Z', 'AB', 'AC', 'AG', 'AH', 'AI', 'AJ',];
+const columns = ['C', 'O', 'P', 'Q', 'Z', 'AB', 'AC', 'AG', 'AH', 'AI', 'AJ','AS'];
 function addInput() {
     inputs.value.push('')
 }
