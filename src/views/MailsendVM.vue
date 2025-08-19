@@ -7,7 +7,7 @@ const selectGuide = ref('');
 const portalguide = ref();
 const portal = ref();
 const isLoading = ref(false); 
-const columns = ['C', 'O', 'P', 'Q', 'Z', 'AB', 'AC', 'AG', 'AH', 'AI', 'AJ'];
+const columns = ['C', 'O', 'P', 'Q', 'Z', 'AB', 'AC', 'AG', 'AH', 'AI', 'AJ',];
 function addInput() {
     inputs.value.push('')
 }
@@ -225,7 +225,7 @@ function validateDropdown() {
                     </tr>
                     <tr class=" text-black border-1 border-black">
                         <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">Username</th>
-                        <td class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">XXX</td>
+                        <td class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">{{rowData[7]}}</td>
                         <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]"></th>
                     </tr>
                     <tr class=" text-black border-1 border-black">
