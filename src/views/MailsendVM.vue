@@ -63,6 +63,12 @@ function validateDropdown() {
   }
 
 }
+function validateDropdownportal(){
+    if (selectGuide.value === '2')
+{
+
+}
+}
 
 </script>
 <template lang="">
@@ -225,7 +231,7 @@ function validateDropdown() {
                     </tr>
                     <tr class=" text-black border-1 border-black">
                         <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">Username</th>
-                        <td class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">{{rowData[7]}}</td>
+                        <td class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">{{rowData[11]}}</td>
                         <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]"></th>
                     </tr>
                     <tr class=" text-black border-1 border-black">
