@@ -42,7 +42,7 @@ import { Plus,Minus } from 'lucide-vue-next';
     rows.value = []
     selectTypeDoc.value = ref('');
   }
-  const columns = ['Z', 'AB', 'AC', 'AG', 'AH', 'AI', 'AJ']
+  const columns = ['Z', 'AB', 'AC', 'AG', 'AH', 'AI', 'AJ','AS']
   async function fetchData() {
     rows.value = [];
     isLoading.value = true;
