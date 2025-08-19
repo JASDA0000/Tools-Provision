@@ -63,12 +63,6 @@ function validateDropdown() {
   }
 
 }
-function validateDropdownportal(){
-    if (selectGuide.value === '2')
-{
-
-}
-}
 
 </script>
 <template lang="">
