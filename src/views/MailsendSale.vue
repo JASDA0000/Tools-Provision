@@ -4,7 +4,7 @@ import { Plus,Minus } from 'lucide-vue-next';
   const inputs = ref(['']);     // ช่องกรอกสำหรับแถว เช่น 10000, 10001, ...
   const rows = ref([]);         // สำหรับเก็บข้อมูลที่ดึงมา
   const isLoading = ref(false);
-  const selectTypeDoc = ref('');
+  selectTypeDoc.value = '';
 
   const messageShow = {
     poc: `
@@ -54,10 +54,12 @@ import { Plus,Minus } from 'lucide-vue-next';
           const res = await fetch(url);
           if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
           const data = await res.json();
+          const rec = data.data || {};
           // console.log(data); 
           // data จะเป็น object เช่น { A10000: "val1", C10000: "val2", ... }
           // แปลงเป็น array หรือ object ตามต้องการก่อนเก็บ
-          const rowData = columns.map(col => data[`${col}${row.trim()}`] || '-')
+          // const rowData = columns.map(col => data[`${col}${row.trim()}`] || '-')
+          const rowData = columns.map(col => (rec[col] ?? '-'));
           rows.value.push(rowData);
         }
       }
@@ -143,6 +145,6 @@ import { Plus,Minus } from 'lucide-vue-next';
         </tr>
       </tbody>
     </table>
-    <div v-if"selectTypeDoc" v-html="detailImages[selectTypeDoc]" class="bg-white shadow-2xl mt-2 rounded-2xl">
+    <<div v-if="selectTypeDoc" v-html="detailImages[selectTypeDoc]" class="bg-white shadow-2xl mt-2 rounded-2xl">
     </div>
 </template>
