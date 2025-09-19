@@ -11,14 +11,15 @@ const columns = ['C', 'O', 'P', 'Q', 'Z', 'AB', 'AC', 'AG', 'AH', 'AI', 'AJ', 'A
 
 /** ===== STATE ===== */
 const inputs = ref([''])          // เลขแถว หรือ SO-/POC-
-const rows = ref([])              // array of array ตาม columns
-const selectGuide = ref('')
-const portal = ref('')
-const portalguide = ref('')
+const rows = ref([])              // ผลแต่ละแถว (array ตาม columns)
+const selectGuide = ref('')       // '1' | '2' | ''
+const portal = ref('')            // แสดงชื่อ portal
+const portalguide = ref('')       // ลิงก์คู่มือ
 const isLoading = ref(false)
 
 /** ===== COMPUTED ===== */
 const rowData = computed(() => rows.value[0] || [])
+// นับจำนวน VM จากจำนวนแถวข้อมูลจริงที่ดึงได้
 const vmCount = computed(() => rows.value.length)
 
 /** ===== ACTIONS ===== */
@@ -45,41 +46,47 @@ function validateDropdown() {
   }
 }
 
-/**
- * รองรับทั้ง
- *  - /sheet?row=12345          -> { data: {C:..., Z:...} }
- *  - /sheet?so_number=SO-xxxx  -> { rows: [{C:..., Z:...}, {C:..., Z:...}, ...] }
- */
 async function fetchData() {
   rows.value = []
   isLoading.value = true
-
   try {
-    const queries = inputs.value.map(v => (v ?? '').toString().trim()).filter(Boolean)
-    const columnsParam = columns.join(',')
+    const queries = inputs.value
+      .map(v => (v ?? '').toString().trim())
+      .filter(v => v.length > 0)
 
+    const colsParam = columns.join(',')
+
+    // สร้างงานยิง API แบบขนาน
     const jobs = queries.map(async (q) => {
-      const isRow = /^\d+$/.test(q)
-      const url = isRow
-        ? `${API_BASE}/sheet?row=${encodeURIComponent(q)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
-        : `${API_BASE}/sheet?so_number=${encodeURIComponent(q)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
+      const isRowNumber = /^\d+$/.test(q)
+      const url = isRowNumber
+        ? `${API_BASE}/sheet?row=${encodeURIComponent(q)}&columns_sendVM=${encodeURIComponent(colsParam)}`
+        : `${API_BASE}/sheet?so_number=${encodeURIComponent(q)}&columns_sendVM=${encodeURIComponent(colsParam)}`
 
       const res = await fetch(url, { cache: 'no-store' })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const json = await res.json()
 
-      // ถ้าเป็นหลายแถวจาก so_number (json.rows เป็น array)
+      // กรณีค้นหาจาก SO/POC → ได้หลายแถวใน json.rows
       if (Array.isArray(json?.rows)) {
-        return json.rows.map(rec => columns.map(col => (rec?.[col] ?? '-')))
+        // map object ของแต่ละแถว → เป็นอาเรย์เรียงตาม columns
+        const mapped = json.rows.map(rec =>
+          columns.map(col => (rec && rec[col] !== undefined ? rec[col] : '-'))
+        )
+        return mapped   // คืนเป็นอาเรย์ของหลายแถว
       }
 
-      // ถ้าเป็นแถวเดียว (json.data เป็น object)
+      // กรณีดึงจากเลข row เดี่ยว → json.data
       const rec = json?.data || {}
-      return [columns.map(col => (rec[col] ?? '-'))]
+      return [columns.map(col => (rec && rec[col] !== undefined ? rec[col] : '-'))] // ห่อเป็นอาเรย์ 1 แถว
     })
 
-    // รวมผลลัพธ์ทุก query ให้เป็น array แบนเดียว
-    rows.value = (await Promise.all(jobs)).flat()
+    // ผลจาก jobs จะเป็นอาเรย์ของ “กลุ่มแถว” → แบนให้เหลืออาเรย์แถวเดียว
+    const groups = await Promise.all(jobs)   // e.g. [ [row,row], [row], ... ]
+    rows.value = groups.flat()
+
+    // ลอง log ดูโครงสร้างหลัง map/flatten แล้ว (ช่วยดีบัก)
+    console.log('rows mapped:', rows.value)
   } catch (err) {
     console.error(err)
     alert('เกิดข้อผิดพลาด: ' + (err?.message || err))
