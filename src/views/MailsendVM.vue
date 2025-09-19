@@ -11,11 +11,11 @@ const columns = ['C', 'O', 'P', 'Q', 'Z', 'AB', 'AC', 'AG', 'AH', 'AI', 'AJ', 'A
 // 7:AG=vCPU, 8:AH=vRAM, 9:AI=vDisk, 10:AJ=OS, 11:AS=Username
 
 /** ===== STATE ===== */
-const inputs = ref([''])          // เลขแถว
-const rows = ref([])              // ผลแต่ละแถว (array ตาม columns)
-const selectGuide = ref('')       // '1' | '2' | ''
-const portal = ref('')            // แสดงชื่อ portal
-const portalguide = ref('')       // ลิงก์คู่มือ
+const inputs = ref([''])          // รับค่า SO/POC หรือ Row
+const rows = ref([])              // ผลแต่ละแถว
+const selectGuide = ref('')
+const portal = ref('')
+const portalguide = ref('')
 const isLoading = ref(false)
 
 /** ===== COMPUTED ===== */
@@ -52,23 +52,27 @@ async function fetchData() {
   rows.value = []
   isLoading.value = true
   try {
-    // เตรียมรายการแถว (รับเฉพาะเลข)
-    const rowList = inputs.value
+    const queryList = inputs.value
       .map(r => (r ?? '').toString().trim())
-      .filter(r => r.length > 0 && /^\d+$/.test(r))
+      .filter(r => r.length > 0)
 
     const columnsParam = columns.join(',')
 
-    // ยิงพร้อมกัน
-    const jobs = rowList.map(async (row) => {
-      const url = `${API_BASE}/sheet?row=${encodeURIComponent(row)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
+    const jobs = queryList.map(async (query) => {
+      let url = ''
+      if (/^\d+$/.test(query)) {
+        // ถ้า user กรอกเป็นตัวเลขล้วน → ใช้ row=...
+        url = `${API_BASE}/sheet?row=${encodeURIComponent(query)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
+      } else {
+        // ถ้าเป็น SO-xxx หรือ POC-xxx → ใช้ so_number=...
+        url = `${API_BASE}/sheet?so_number=${encodeURIComponent(query)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
+      }
+
       const res = await fetch(url, { cache: 'no-store' })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const json = await res.json()
-      const rec = json?.data || {} // <- อ่านจาก data.{col}
-      // map ตาม columns
-      const values = columns.map(col => (rec[col] ?? '-'))
-      return values
+      const rec = json?.data || {}
+      return columns.map(col => (rec[col] ?? '-'))
     })
 
     rows.value = await Promise.all(jobs)
