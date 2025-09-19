@@ -3,13 +3,16 @@ import { ref, computed } from 'vue'
 import { Plus, Minus } from 'lucide-vue-next'
 
 /** ====== CONFIG ====== */
-const API_BASE = 'https://backend-tools-provision.onrender.com' // <-- backend ของคุณ
+const API_BASE = 'https://backend-tools-provision.onrender.com'
 const columns = ['C', 'O', 'P', 'Q', 'Z', 'AB', 'AC', 'AG', 'AH', 'AI', 'AJ', 'AS']
+// 0:C(SO), 1:O(Customer), 2:P(Start), 3:Q(End)
+// 4:Z(Name), 5:AB(Private), 6:AC(Public), 7:AG(vCPU),
+// 8:AH(vRAM), 9:AI(vDisk), 10:AJ(OS), 11:AS(User)
 
 /** ====== STATE ====== */
-const inputs = ref([''])           // ค่าที่ผู้ใช้กรอก (row number หรือ SO-/POC-)
-const rows = ref([])               // รายการ VM (หลายเครื่อง)
-const headerRow = ref(null)        // เก็บหัวตาราง (SO, Customer, Period)
+const inputs = ref([''])
+const rows = ref([])         // Array<Array<string>> สำหรับ VM แต่ละเครื่อง
+const headerRow = ref(null)  // เก็บหัวตาราง SO/Customer/Period
 const isLoading = ref(false)
 
 const portal = ref('')
@@ -19,7 +22,6 @@ const selectGuide = ref('')
 /** ====== ACTIONS ====== */
 function addInput() { inputs.value.push('') }
 function removeInput() { if (inputs.value.length > 1) inputs.value.pop() }
-
 function resetData() {
   inputs.value = ['']
   rows.value = []
@@ -29,51 +31,71 @@ function resetData() {
   portalguide.value = ''
 }
 
+/** ====== COMPUTED ====== */
 const rowData = computed(() => headerRow.value || rows.value[0] || [])
 const vmCount = computed(() => rows.value.length)
 
-/** ดึงข้อมูลจาก API */
+/** ====== Dropdown ====== */
+function validateDropdown() {
+  if (selectGuide.value === '1') {
+    portal.value = 'AHV'
+    portalguide.value = 'https://ocp-cloud.inet.co.th/owncloud/index.php/s/rM7ERfrMt2GaBGP'
+  } else if (selectGuide.value === '2') {
+    portal.value = 'Cloud-Open Source (Proxmox)'
+    portalguide.value = 'https://ocp-cloud.inet.co.th/owncloud/index.php/s/76XijkVXFQCseBa'
+  } else {
+    portal.value = ''
+    portalguide.value = ''
+  }
+}
+
+/** ====== ดึงข้อมูลจาก API ====== */
 async function fetchData() {
   rows.value = []
   headerRow.value = null
   isLoading.value = true
+
   try {
-    const queryList = inputs.value
-      .map(r => (r ?? '').toString().trim())
-      .filter(r => r.length > 0)
+    const queries = inputs.value
+      .map(v => (v ?? '').toString().trim())
+      .filter(v => v.length > 0)
 
     const columnsParam = columns.join(',')
+
     const groups = await Promise.all(
-      queryList.map(async (query) => {
-        // 1) ถ้าเป็นเลข → ดึงด้วย row
-        if (/^\d+$/.test(query)) {
-          const url = `${API_BASE}/sheet?row=${encodeURIComponent(query)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
+      queries.map(async (q) => {
+        // case 1: row number
+        if (/^\d+$/.test(q)) {
+          const url = `${API_BASE}/sheet?row=${encodeURIComponent(q)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
           const res = await fetch(url, { cache: 'no-store' })
           if (!res.ok) throw new Error(`HTTP ${res.status}`)
           const json = await res.json()
           const rec = json?.data || {}
-          const oneRow = columns.map(col => (rec[col] ?? '-'))
-          return [oneRow]
+          const one = columns.map(col => (rec[col] ?? '-'))
+          if (!headerRow.value) {
+            headerRow.value = [one[0], one[1], one[2], one[3]]
+          }
+          return [one]
         }
 
-        // 2) ถ้าเป็น SO-/POC- → ดึงแบบหลาย VM
-        const url = `${API_BASE}/sheet?so_number=${encodeURIComponent(query)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
+        // case 2: SO-/POC-
+        const url = `${API_BASE}/sheet?so_number=${encodeURIComponent(q)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
         const res = await fetch(url, { cache: 'no-store' })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const json = await res.json()
 
-        // เก็บ header (C,O,P,Q)
         const h = json?.header || {}
-        headerRow.value = [
-          (h['C'] ?? '-'), // SO
-          (h['O'] ?? '-'), // Customer
-          (h['P'] ?? '-'), // Start
-          (h['Q'] ?? '-')  // End
-        ]
+        if (!headerRow.value) {
+          headerRow.value = [
+            (h['C'] ?? '-'),
+            (h['O'] ?? '-'),
+            (h['P'] ?? '-'),
+            (h['Q'] ?? '-')
+          ]
+        }
 
-        // แปลง VM rows
-        const list = (json?.rows || []).map(rec =>
-          columns.map(col => (rec?.[col] ?? '-'))
+        const list = (json?.rows || []).map(item =>
+          columns.map(col => (item?.data?.[col] ?? '-'))
         )
         return list
       })
@@ -81,9 +103,10 @@ async function fetchData() {
 
     rows.value = groups.flat()
 
-    // debug log
-    console.log('headerRow', headerRow.value)
-    console.log('rows', rows.value)
+    // Debug log
+    console.log('headerRow:', headerRow.value)
+    console.log('rows (array):', rows.value)
+    console.table(rows.value)
 
   } catch (err) {
     console.error(err)
