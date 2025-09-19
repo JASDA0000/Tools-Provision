@@ -2,76 +2,89 @@
 import { ref, computed } from 'vue'
 import { Plus, Minus } from 'lucide-vue-next'
 
-/** ===== CONFIG ===== */
-const API_BASE = 'https://backend-tools-provision.onrender.com'
+/** ====== CONFIG ====== */
+const API_BASE = 'https://backend-tools-provision.onrender.com' // <-- backend ของคุณ
 const columns = ['C', 'O', 'P', 'Q', 'Z', 'AB', 'AC', 'AG', 'AH', 'AI', 'AJ', 'AS']
-// index mapping อ้างอิงใน template:
-// 0:C=SO, 1:O=Customer, 2:P=Start, 3:Q=End,
-// 4:Z=VM Name, 5:AB=IP Private, 6:AC=IP Public,
-// 7:AG=vCPU, 8:AH=vRAM, 9:AI=vDisk, 10:AJ=OS, 11:AS=Username
 
-/** ===== STATE ===== */
-const inputs = ref([''])          // เลขแถว
-const rows = ref([])              // ผลแต่ละแถว (array ตาม columns)
-const selectGuide = ref('')       // '1' | '2' | ''
-const portal = ref('')            // แสดงชื่อ portal
-const portalguide = ref('')       // ลิงก์คู่มือ
+/** ====== STATE ====== */
+const inputs = ref([''])           // ค่าที่ผู้ใช้กรอก (row number หรือ SO-/POC-)
+const rows = ref([])               // รายการ VM (หลายเครื่อง)
+const headerRow = ref(null)        // เก็บหัวตาราง (SO, Customer, Period)
 const isLoading = ref(false)
 
-/** ===== COMPUTED ===== */
-const rowData = computed(() => rows.value[0] || [])
-const vmCount = computed(() =>
-  inputs.value.filter(i => (i ?? '').toString().trim() !== '').length
-)
+const portal = ref('')
+const portalguide = ref('')
+const selectGuide = ref('')
 
-/** ===== ACTIONS ===== */
+/** ====== ACTIONS ====== */
 function addInput() { inputs.value.push('') }
 function removeInput() { if (inputs.value.length > 1) inputs.value.pop() }
+
 function resetData() {
   inputs.value = ['']
   rows.value = []
+  headerRow.value = null
   selectGuide.value = ''
   portal.value = ''
   portalguide.value = ''
 }
 
-function validateDropdown() {
-  if (selectGuide.value === '1') {
-    portal.value = 'AHV'
-    portalguide.value = 'https://ocp-cloud.inet.co.th/owncloud/index.php/s/rM7ERfrMt2GaBGP'
-  } else if (selectGuide.value === '2') {
-    portal.value = 'Cloud-Open Source (Proxmox)'
-    portalguide.value = 'https://ocp-cloud.inet.co.th/owncloud/index.php/s/76XijkVXFQCseBa'
-  } else {
-    portal.value = ''
-    portalguide.value = ''
-  }
-}
+const rowData = computed(() => headerRow.value || rows.value[0] || [])
+const vmCount = computed(() => rows.value.length)
 
+/** ดึงข้อมูลจาก API */
 async function fetchData() {
   rows.value = []
+  headerRow.value = null
   isLoading.value = true
   try {
-    // เตรียมรายการแถว (รับเฉพาะเลข)
-    const rowList = inputs.value
+    const queryList = inputs.value
       .map(r => (r ?? '').toString().trim())
-      .filter(r => r.length > 0 && /^\d+$/.test(r))
+      .filter(r => r.length > 0)
 
     const columnsParam = columns.join(',')
+    const groups = await Promise.all(
+      queryList.map(async (query) => {
+        // 1) ถ้าเป็นเลข → ดึงด้วย row
+        if (/^\d+$/.test(query)) {
+          const url = `${API_BASE}/sheet?row=${encodeURIComponent(query)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
+          const res = await fetch(url, { cache: 'no-store' })
+          if (!res.ok) throw new Error(`HTTP ${res.status}`)
+          const json = await res.json()
+          const rec = json?.data || {}
+          const oneRow = columns.map(col => (rec[col] ?? '-'))
+          return [oneRow]
+        }
 
-    // ยิงพร้อมกัน
-    const jobs = rowList.map(async (row) => {
-      const url = `${API_BASE}/sheet?row=${encodeURIComponent(row)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
-      const res = await fetch(url, { cache: 'no-store' })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const json = await res.json()
-      const rec = json?.data || {} // <- อ่านจาก data.{col}
-      // map ตาม columns
-      const values = columns.map(col => (rec[col] ?? '-'))
-      return values
-    })
+        // 2) ถ้าเป็น SO-/POC- → ดึงแบบหลาย VM
+        const url = `${API_BASE}/sheet?so_number=${encodeURIComponent(query)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
+        const res = await fetch(url, { cache: 'no-store' })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const json = await res.json()
 
-    rows.value = await Promise.all(jobs)
+        // เก็บ header (C,O,P,Q)
+        const h = json?.header || {}
+        headerRow.value = [
+          (h['C'] ?? '-'), // SO
+          (h['O'] ?? '-'), // Customer
+          (h['P'] ?? '-'), // Start
+          (h['Q'] ?? '-')  // End
+        ]
+
+        // แปลง VM rows
+        const list = (json?.rows || []).map(rec =>
+          columns.map(col => (rec?.[col] ?? '-'))
+        )
+        return list
+      })
+    )
+
+    rows.value = groups.flat()
+
+    // debug log
+    console.log('headerRow', headerRow.value)
+    console.log('rows', rows.value)
+
   } catch (err) {
     console.error(err)
     alert('เกิดข้อผิดพลาด: ' + (err?.message || err))
