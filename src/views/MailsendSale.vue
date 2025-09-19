@@ -1,6 +1,5 @@
 <script setup>
 import { ref } from 'vue'
-import { Plus, Minus } from 'lucide-vue-next'
 
 /** ====== CONFIG ====== */
 const API_BASE = 'https://backend-tools-provision.onrender.com' // <-- URL backend
@@ -14,15 +13,24 @@ const selectTypeDoc = ref('') // 'poc' | 'newservice' | 'change' | ''
 
 /** ====== STATIC CONTENT ====== */
 const messageShow = {
-  poc: `<p class="text-black">เรียน ทีม POC</p>`,
-  newservice: `<p class="text-black">เรียน ทีม New Service</p>`,
-  change: `<p class="text-black">เรียน ทีม Change</p>`
+  poc: `<p class="text-black">เรียน ทีม </p>
+    <p class="ml-[32px]">ทางทีมดำเนินการสร้างเครื่องและจัดส่งให้ลูกค้าเรียบร้อยแล้ว โดยมีรายละเอียดดังนี้ครับ</p>`,
+  newservice: `<p class="text-black">เรียน ทีม </p>
+    <p class="ml-[32px]">
+     ทางทีมดำเนินการย้าย Zone จาก POC เป็น PRD เรียบร้อยแล้ว โดยมีรายละเอียดดังนี้ครับ อ้างอิง SO/POC-xxxxxx</p>`,
+  change_renew: `<p class="text-black">เรียน ทีม </p>
+    <p class="ml-[32px]">ทางทีม Cloud ดำเนินการตรวจสอบ Spec VM ตรงกับเอกสาร โดยมีรายละเอียดดังนี้ครับ</p>
+    <p class="">Remark : XXXX</p>`,
+  renew_and_change:`<p class="text-black">เรียน ทีม </p>
+    <p class="ml-[32px]">ทางทีม Cloud ดำเนินการตรวจสอบ Spec VM ตรงกับเอกสาร โดยมีรายละเอียดดังนี้ครับ</p>
+    <p class="">Remark : XXXX</p>`,
 }
 
 const detailImages = {
-  poc: `<p class="text-red-500">POC IMAGES</p>`,
+  poc: `<p class="text-red-500">POC รูปหน้าเครื่อง รูปถึง รูป zabbix รูป smartup รูป crowdstrike</p>`,
   newservice: `<p class="text-red-500">NEWSERVICE IMAGES</p>`,
-  change: `<p class="text-red-500">CHANGE IMAGES</p>`
+  change_renew: `<p class="text-red-500">CHANGE IMAGES</p>`,
+  renew_and_change: `<p class="text-red-500">CHANGE IMAGES</p>`
 }
 
 /** ====== ACTIONS ====== */
@@ -77,7 +85,7 @@ async function fetchData() {
     rows.value = resultNested.flat()
   } catch (err) {
     console.error(err)
-    alert('ดึงข้อมูลไม่สำเร็จ: ' + (err?.message || err))
+    alert('ไม่พบข้อมูลที่ logs: ' + (err?.message || err))
   } finally {
     isLoading.value = false
   }
@@ -95,7 +103,8 @@ async function fetchData() {
           <option value="">กรุณาเลือก</option>
           <option value="poc">POC</option>
           <option value="newservice">New Service</option>
-          <option value="change">Change</option>
+          <option value="change_renew">Change / Renew</option>
+          <option value="renew_and_change">Renew & Change</option>
         </select>
       </div>
 
@@ -106,14 +115,14 @@ async function fetchData() {
           class="bg-white rounded-xl text-black text-xl p-2 w-full border-2"
           placeholder="เช่น 10000 หรือ SO-123456 หรือ POC-78910"
         />
-        <template v-if="index === inputs.length - 1">
+        <!-- <template v-if="index === inputs.length - 1">
           <button @click="addInput" class="bg-green-500 text-white px-3 py-1 rounded-2xl hover:opacity-70">
             <Plus class="w-4 h-6" />
           </button>
           <button @click="removeInput" class="bg-red-500 text-white px-3 py-1 rounded-2xl hover:opacity-70">
             <Minus class="w-4 h-6" />
           </button>
-        </template>
+        </template> -->
       </div>
 
       <div class="mt-4">
@@ -132,7 +141,8 @@ async function fetchData() {
         </button>
       </div>
     </div>
-
+<!-- ข้อความหัวจดหมาย -->
+   <div v-if="!isLoading && selectTypeDoc" v-html="messageShow[selectTypeDoc]" class="text-black bg-white mt-2 text-left"></div>
     <!-- ตาราง -->
     <table v-if="rows.length" class="border border-[#cccccc] border-collapse w-full bg-white text-black font-sans text-[12px] mt-2">
       <thead>
@@ -161,8 +171,7 @@ async function fetchData() {
       </tbody>
     </table>
 
-    <!-- ข้อความหัวจดหมาย -->
-    <div v-if="!isLoading && selectTypeDoc" v-html="messageShow[selectTypeDoc]" class="text-black bg-white mt-2"></div>
+    
 
     <!-- รายละเอียดรูปภาพ -->
     <div v-if="selectTypeDoc" v-html="detailImages[selectTypeDoc]" class="bg-white shadow-2xl mt-2 rounded-2xl"></div>
