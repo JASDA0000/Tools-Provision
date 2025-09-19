@@ -20,9 +20,7 @@ const isLoading = ref(false)
 
 /** ===== COMPUTED ===== */
 const rowData = computed(() => rows.value[0] || [])
-const vmCount = computed(() =>
-  rows.value.length
-)
+const vmCount = computed(() => rows.value.length)
 
 /** ===== ACTIONS ===== */
 function addInput() { inputs.value.push('') }
@@ -71,14 +69,14 @@ async function fetchData() {
       const res = await fetch(url, { cache: 'no-store' })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const json = await res.json()
-      const data = json?.data || []
+      const data = json?.data
 
       if (Array.isArray(data)) {
-        // กรณี so_number มีหลาย record
+        // ถ้า API ส่งกลับหลาย record (so_number)
         return data.map(rec => columns.map(col => (rec[col] ?? '-')))
       } else {
-        // กรณี row เดียว
-        return [columns.map(col => (data[col] ?? '-'))]
+        // ถ้า API ส่งกลับ record เดียว (row)
+        return [columns.map(col => (data?.[col] ?? '-'))]
       }
     })
 
@@ -92,7 +90,6 @@ async function fetchData() {
   }
 }
 </script>
-
 
 <template>
   <div class="p-4 space-y-4 bg-[#fff] rounded-2xl shadow-2xs">
