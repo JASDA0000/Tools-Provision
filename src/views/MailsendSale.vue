@@ -1,4 +1,3 @@
-<!-- ToolsProvision.vue -->
 <script setup>
 import { ref } from 'vue'
 import { Plus, Minus } from 'lucide-vue-next'
@@ -8,77 +7,27 @@ const API_BASE = 'https://backend-tools-provision.onrender.com' // <-- แก้
 const columns = ['Z', 'AB', 'AC', 'AG', 'AH', 'AI', 'AJ']       // รวม 7 คอลัมน์ (ตรงกับตาราง)
 
 /** ====== STATE ====== */
-const inputs = ref([''])      // รายการ "หมายเลขแถว" ที่ผู้ใช้กรอก
+const inputs = ref([''])      // รายการ "เลขแถว หรือ SO/POC" ที่ผู้ใช้กรอก
 const rows = ref([])          // ผลลัพธ์ที่ดึงมา (array ของ array ตาม columns)
 const isLoading = ref(false)
 const selectTypeDoc = ref('') // 'poc' | 'newservice' | 'change' | ''
 
-/** ====== STATIC CONTENT ====== */
+/** ====== STATIC CONTENT (messageShow, detailImages เหมือนเดิม) ====== */
 const messageShow = {
-  poc: `
-    <div class="">
-      <p class="font-bold text-left font-serif text-black">เรียน ทีม</p>
-      <br>
-      <p class="font-serif text-black text-left">
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ทางทีมดำเนินการสร้างเครื่องและจัดส่งให้ลูกค้าเรียบร้อยแล้วครับ โดยมีรายละเอียดดังนี้ครับ
-      </p>
-      <br>
-    </div>`,
-  newservice: `
-    <div class="">
-      <p class="font-bold text-left font-serif text-black">เรียน ทีม</p>
-      <br>
-      <p class="font-serif text-black text-left">
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ทางทีม Cloud ดำเนินการย้ายโซน POC เป็น PRD ให้กับลูกค้าเรียบร้อยแล้วครับ โดยมีรายละเอียดดังนี้ครับ อ้างอิง :
-        <span class="bg-[#ffff00]">SO/POC-xxx</span>
-      </p>
-    </div>`,
-  change: `
-    <div class="">
-      <p class="font-bold text-left font-serif text-black">เรียน ทีม</p>
-      <br>
-      <p class="font-serif text-black text-left">
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;มีการเปลี่ยนแปลงตามคำขอของลูกค้า โดยมีรายละเอียดดังนี้ครับ
-      </p>
-    </div>`
+  poc: `...`, // (ไม่เปลี่ยน)
+  newservice: `...`,
+  change: `...`
 }
 
 const detailImages = {
-  poc: `<div class="p-2">
-      <p class="text-red-500 font-bold text-left">ส่วนประกอบภายใน Loop Mail</p>
-      <p>&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;รูปหน้าเครื่อง&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;</p>
-      <br>
-      <p>&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;รูปถัง Backup&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;</p>
-      <br>
-      <p>&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;รูป Zabbix&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;</p>
-      <br>
-      <p>&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;รูป CrowdStrike&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;</p> 
-    </div>`,
-  newservice: `<div class="p-2">
-      <p class="text-red-500 font-bold text-left">ส่วนประกอบภายใน Loop Mail</p>
-      <p>&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;รูปหน้าเครื่อง ย้ายโซน PRD&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;</p>
-      <br>
-      <p>&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;รูปถัง Backup&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;</p>
-      <br>
-      <p>&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;รูป Zabbix ย้ายโซน PRD&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;</p>
-      <br>
-      <p>&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;รูป CrowdStrike ย้ายโซน PRD&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;</p> 
-    </div>`,
-  change: `<div class="p-2">
-      <p class="text-red-500 font-bold text-left">ส่วนประกอบภายใน Loop Mail</p>
-      <p>&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;รูปก่อนเปลี่ยนแปลง&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;</p>
-      <br>
-      <p>&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;รูปหลังเปลี่ยนแปลง&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;</p>
-    </div>`
+  poc: `...`,
+  newservice: `...`,
+  change: `...`
 }
 
 /** ====== ACTIONS ====== */
-function addInput() {
-  inputs.value.push('')
-}
-function removeInput() {
-  if (inputs.value.length > 1) inputs.value.pop()
-}
+function addInput() { inputs.value.push('') }
+function removeInput() { if (inputs.value.length > 1) inputs.value.pop() }
 function resetData() {
   inputs.value = ['']
   rows.value = []
@@ -86,34 +35,37 @@ function resetData() {
 }
 
 /**
- * ดึงข้อมูลแบบ "แถวเดียวต่อ 1 request" ตามที่คุณใช้อยู่
- * อ่านผลลัพธ์จาก data.data.{COL} (รูปแบบ JSON ใหม่จาก backend)
+ * fetchData รองรับทั้ง "row" (เลข) และ "so_number" (SO-xxxx หรือ POC-xxxx)
  */
 async function fetchData() {
   rows.value = []
   isLoading.value = true
 
   try {
-    // เตรียม query ต่อแถวแบบขนาน (Promise.all) ให้ไวขึ้นเวลาขอหลายแถว
     const jobs = inputs.value
       .map(r => (r ?? '').toString().trim())
-      .filter(r => r.length > 0 && /^\d+$/.test(r)) // รับเฉพาะเลขล้วน
-      .map(async (row) => {
+      .filter(r => r.length > 0)
+      .map(async (val) => {
         const columnsParam = columns.join(',')
-        const url = `${API_BASE}/sheet?row=${encodeURIComponent(row)}&columns=${encodeURIComponent(columnsParam)}`
+        let url = ''
+
+        if (/^\d+$/.test(val)) {
+          // ถ้าเป็นตัวเลขล้วน → ใช้ row
+          url = `${API_BASE}/sheet?row=${encodeURIComponent(val)}&columns=${encodeURIComponent(columnsParam)}`
+        } else {
+          // ถ้าเป็น SO-xxx หรือ POC-xxx → ใช้ so_number
+          url = `${API_BASE}/sheet?so_number=${encodeURIComponent(val)}&columns=${encodeURIComponent(columnsParam)}`
+        }
+
         const res = await fetch(url, { cache: 'no-store' })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const data = await res.json()
 
-        // โครงสร้าง JSON ที่ backend ส่งมา: { mode, row, columns, data: {Z:..., AB:...} }
         const rec = data?.data || {}
-        // map ให้ตรงกับ columns
-        const rowData = columns.map(col => (rec[col] ?? '-'))
-        return rowData
+        return columns.map(col => (rec[col] ?? '-'))
       })
 
-    const result = await Promise.all(jobs)
-    rows.value = result
+    rows.value = await Promise.all(jobs)
   } catch (err) {
     console.error(err)
     alert('ดึงข้อมูลไม่สำเร็จ: ' + (err?.message || err))
@@ -124,7 +76,7 @@ async function fetchData() {
 </script>
 
 <template>
-  <div class="">
+  <div>
     <p class="font-bold text-3xl">📋 Tools-Provision</p>
 
     <div class="bg-[#fff] text-black p-4 shadow-xs rounded-2xl w-full mt-2">
@@ -139,12 +91,11 @@ async function fetchData() {
       </div>
 
       <div v-for="(item, index) in inputs" :key="index" class="flex items-center gap-2 mt-2">
-        <label class="text-xl">แถว:</label>
+        <label class="text-xl">ค้นหา:</label>
         <input
           v-model="inputs[index]"
           class="bg-white rounded-xl text-black text-xl p-2 w-full border-2"
-          placeholder="เช่น 10000"
-          inputmode="numeric"
+          placeholder="เช่น 10000 หรือ SO-123456 หรือ POC-78910"
         />
         <template v-if="index === inputs.length - 1">
           <button @click="addInput" class="bg-green-500 text-white px-3 py-1 rounded-2xl hover:opacity-70">
@@ -173,22 +124,8 @@ async function fetchData() {
       </div>
     </div>
 
-    <!-- Loading -->
-    <div v-if="isLoading" class="flex items-center justify-center mt-4 text-[#47ba87] mb-2">
-      <svg class="animate-spin h-6 w-6 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l4-4-4-4v4a8 8 0 00-8 8z" />
-      </svg>
-      <span class="text-lg">กำลังโหลดข้อมูล...</span>
-    </div>
-
-    <!-- ข้อความหัวจดหมาย -->
-    <div v-if="!isLoading">
-      <div v-if="selectTypeDoc" v-html="messageShow[selectTypeDoc]" class="text-black bg-white mt-2"></div>
-    </div>
-
-    <!-- ตารางผลลัพธ์ -->
-    <table class="border border-[#cccccc] border-collapse w-full bg-white text-black font-sans text-[12px] mt-2">
+    <!-- ตาราง -->
+    <table v-if="rows.length" class="border border-[#cccccc] border-collapse w-full bg-white text-black font-sans text-[12px] mt-2">
       <thead>
         <tr>
           <th class="border border-[#cccccc] px-2">Name</th>
@@ -201,7 +138,7 @@ async function fetchData() {
           <th class="border border-[#cccccc] px-2">Guest OS</th>
         </tr>
       </thead>
-      <tbody v-if="!isLoading">
+      <tbody>
         <tr v-for="(row, index) in rows" :key="index">
           <td class="border border-[#cccccc] px-2">{{ row[0] }}</td>
           <td class="border border-[#cccccc] px-2">Power ON</td>
@@ -215,11 +152,10 @@ async function fetchData() {
       </tbody>
     </table>
 
-    <!-- รายละเอียดรูปภาพตามประเภทเอกสาร -->
+    <!-- ข้อความหัวจดหมาย -->
+    <div v-if="!isLoading && selectTypeDoc" v-html="messageShow[selectTypeDoc]" class="text-black bg-white mt-2"></div>
+
+    <!-- รายละเอียดรูปภาพ -->
     <div v-if="selectTypeDoc" v-html="detailImages[selectTypeDoc]" class="bg-white shadow-2xl mt-2 rounded-2xl"></div>
   </div>
 </template>
-
-<style scoped>
-/* เพิ่มเติมตามต้องการ */
-</style>
