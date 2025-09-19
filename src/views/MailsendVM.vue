@@ -5,17 +5,16 @@ import { Plus, Minus } from 'lucide-vue-next'
 /** ===== CONFIG ===== */
 const API_BASE = 'https://backend-tools-provision.onrender.com'
 const columns = ['C', 'O', 'P', 'Q', 'Z', 'AB', 'AC', 'AG', 'AH', 'AI', 'AJ', 'AS']
-// index mapping อ้างอิงใน template:
 // 0:C=SO, 1:O=Customer, 2:P=Start, 3:Q=End,
 // 4:Z=VM Name, 5:AB=IP Private, 6:AC=IP Public,
 // 7:AG=vCPU, 8:AH=vRAM, 9:AI=vDisk, 10:AJ=OS, 11:AS=Username
 
 /** ===== STATE ===== */
 const inputs = ref([''])          // เลขแถว หรือ SO-/POC-
-const rows = ref([])              // ผลแต่ละแถว (array ตาม columns)
-const selectGuide = ref('')       // '1' | '2' | ''
-const portal = ref('')            // แสดงชื่อ portal
-const portalguide = ref('')       // ลิงก์คู่มือ
+const rows = ref([])              // array of array ตาม columns
+const selectGuide = ref('')
+const portal = ref('')
+const portalguide = ref('')
 const isLoading = ref(false)
 
 /** ===== COMPUTED ===== */
@@ -46,41 +45,40 @@ function validateDropdown() {
   }
 }
 
+/**
+ * รองรับทั้ง
+ *  - /sheet?row=12345          -> { data: {C:..., Z:...} }
+ *  - /sheet?so_number=SO-xxxx  -> { rows: [{C:..., Z:...}, {C:..., Z:...}, ...] }
+ */
 async function fetchData() {
   rows.value = []
   isLoading.value = true
-  try {
-    const queryList = inputs.value
-      .map(r => (r ?? '').toString().trim())
-      .filter(r => r.length > 0)
 
+  try {
+    const queries = inputs.value.map(v => (v ?? '').toString().trim()).filter(Boolean)
     const columnsParam = columns.join(',')
 
-    const jobs = queryList.map(async (query) => {
-      let url = ''
-      if (/^\d+$/.test(query)) {
-        // ถ้าเป็นตัวเลขล้วน → row
-        url = `${API_BASE}/sheet?row=${encodeURIComponent(query)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
-      } else {
-        // ถ้าเป็น SO-/POC- → so_number
-        url = `${API_BASE}/sheet?so_number=${encodeURIComponent(query)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
-      }
+    const jobs = queries.map(async (q) => {
+      const isRow = /^\d+$/.test(q)
+      const url = isRow
+        ? `${API_BASE}/sheet?row=${encodeURIComponent(q)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
+        : `${API_BASE}/sheet?so_number=${encodeURIComponent(q)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
 
       const res = await fetch(url, { cache: 'no-store' })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const json = await res.json()
-      const data = json?.data
 
-      if (Array.isArray(data)) {
-        // ถ้า API ส่งกลับหลาย record (so_number)
-        return data.map(rec => columns.map(col => (rec[col] ?? '-')))
-      } else {
-        // ถ้า API ส่งกลับ record เดียว (row)
-        return [columns.map(col => (data?.[col] ?? '-'))]
+      // ถ้าเป็นหลายแถวจาก so_number (json.rows เป็น array)
+      if (Array.isArray(json?.rows)) {
+        return json.rows.map(rec => columns.map(col => (rec?.[col] ?? '-')))
       }
+
+      // ถ้าเป็นแถวเดียว (json.data เป็น object)
+      const rec = json?.data || {}
+      return [columns.map(col => (rec[col] ?? '-'))]
     })
 
-    // flatten array
+    // รวมผลลัพธ์ทุก query ให้เป็น array แบนเดียว
     rows.value = (await Promise.all(jobs)).flat()
   } catch (err) {
     console.error(err)
