@@ -21,7 +21,7 @@ const isLoading = ref(false)
 /** ===== COMPUTED ===== */
 const rowData = computed(() => rows.value[0] || [])
 const vmCount = computed(() =>
-  inputs.value.filter(i => (i ?? '').toString().trim() !== '').length
+  rows.value.length
 )
 
 /** ===== ACTIONS ===== */
@@ -58,7 +58,6 @@ async function fetchData() {
 
     const columnsParam = columns.join(',')
 
-    // รองรับทั้ง row=... และ so_number=...
     const jobs = queryList.map(async (query) => {
       let url = ''
       if (/^\d+$/.test(query)) {
@@ -72,11 +71,19 @@ async function fetchData() {
       const res = await fetch(url, { cache: 'no-store' })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const json = await res.json()
-      const rec = json?.data || {}
-      return columns.map(col => (rec[col] ?? '-'))
+      const data = json?.data || []
+
+      if (Array.isArray(data)) {
+        // กรณี so_number มีหลาย record
+        return data.map(rec => columns.map(col => (rec[col] ?? '-')))
+      } else {
+        // กรณี row เดียว
+        return [columns.map(col => (data[col] ?? '-'))]
+      }
     })
 
-    rows.value = await Promise.all(jobs)
+    // flatten array
+    rows.value = (await Promise.all(jobs)).flat()
   } catch (err) {
     console.error(err)
     alert('เกิดข้อผิดพลาด: ' + (err?.message || err))
@@ -85,6 +92,7 @@ async function fetchData() {
   }
 }
 </script>
+
 
 <template>
   <div class="p-4 space-y-4 bg-[#fff] rounded-2xl shadow-2xs">
