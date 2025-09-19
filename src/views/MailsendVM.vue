@@ -2,89 +2,76 @@
 import { ref, computed } from 'vue'
 import { Plus, Minus } from 'lucide-vue-next'
 
-/** ====== CONFIG ====== */
-const API_BASE = 'https://backend-tools-provision.onrender.com' // <-- backend ของคุณ
+/** ===== CONFIG ===== */
+const API_BASE = 'https://backend-tools-provision.onrender.com'
 const columns = ['C', 'O', 'P', 'Q', 'Z', 'AB', 'AC', 'AG', 'AH', 'AI', 'AJ', 'AS']
+// index mapping อ้างอิงใน template:
+// 0:C=SO, 1:O=Customer, 2:P=Start, 3:Q=End,
+// 4:Z=VM Name, 5:AB=IP Private, 6:AC=IP Public,
+// 7:AG=vCPU, 8:AH=vRAM, 9:AI=vDisk, 10:AJ=OS, 11:AS=Username
 
-/** ====== STATE ====== */
-const inputs = ref([''])           // ค่าที่ผู้ใช้กรอก (row number หรือ SO-/POC-)
-const rows = ref([])               // รายการ VM (หลายเครื่อง)
-const headerRow = ref(null)        // เก็บหัวตาราง (SO, Customer, Period)
+/** ===== STATE ===== */
+const inputs = ref([''])          // เลขแถว
+const rows = ref([])              // ผลแต่ละแถว (array ตาม columns)
+const selectGuide = ref('')       // '1' | '2' | ''
+const portal = ref('')            // แสดงชื่อ portal
+const portalguide = ref('')       // ลิงก์คู่มือ
 const isLoading = ref(false)
 
-const portal = ref('')
-const portalguide = ref('')
-const selectGuide = ref('')
+/** ===== COMPUTED ===== */
+const rowData = computed(() => rows.value[0] || [])
+const vmCount = computed(() =>
+  inputs.value.filter(i => (i ?? '').toString().trim() !== '').length
+)
 
-/** ====== ACTIONS ====== */
+/** ===== ACTIONS ===== */
 function addInput() { inputs.value.push('') }
 function removeInput() { if (inputs.value.length > 1) inputs.value.pop() }
-
 function resetData() {
   inputs.value = ['']
   rows.value = []
-  headerRow.value = null
   selectGuide.value = ''
   portal.value = ''
   portalguide.value = ''
 }
 
-const rowData = computed(() => headerRow.value || rows.value[0] || [])
-const vmCount = computed(() => rows.value.length)
+function validateDropdown() {
+  if (selectGuide.value === '1') {
+    portal.value = 'AHV'
+    portalguide.value = 'https://ocp-cloud.inet.co.th/owncloud/index.php/s/rM7ERfrMt2GaBGP'
+  } else if (selectGuide.value === '2') {
+    portal.value = 'Cloud-Open Source (Proxmox)'
+    portalguide.value = 'https://ocp-cloud.inet.co.th/owncloud/index.php/s/76XijkVXFQCseBa'
+  } else {
+    portal.value = ''
+    portalguide.value = ''
+  }
+}
 
-/** ดึงข้อมูลจาก API */
 async function fetchData() {
   rows.value = []
-  headerRow.value = null
   isLoading.value = true
   try {
-    const queryList = inputs.value
+    // เตรียมรายการแถว (รับเฉพาะเลข)
+    const rowList = inputs.value
       .map(r => (r ?? '').toString().trim())
-      .filter(r => r.length > 0)
+      .filter(r => r.length > 0 && /^\d+$/.test(r))
 
     const columnsParam = columns.join(',')
-    const groups = await Promise.all(
-      queryList.map(async (query) => {
-        // 1) ถ้าเป็นเลข → ดึงด้วย row
-        if (/^\d+$/.test(query)) {
-          const url = `${API_BASE}/sheet?row=${encodeURIComponent(query)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
-          const res = await fetch(url, { cache: 'no-store' })
-          if (!res.ok) throw new Error(`HTTP ${res.status}`)
-          const json = await res.json()
-          const rec = json?.data || {}
-          const oneRow = columns.map(col => (rec[col] ?? '-'))
-          return [oneRow]
-        }
 
-        // 2) ถ้าเป็น SO-/POC- → ดึงแบบหลาย VM
-        const url = `${API_BASE}/sheet?so_number=${encodeURIComponent(query)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
-        const res = await fetch(url, { cache: 'no-store' })
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        const json = await res.json()
+    // ยิงพร้อมกัน
+    const jobs = rowList.map(async (row) => {
+      const url = `${API_BASE}/sheet?row=${encodeURIComponent(row)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
+      const res = await fetch(url, { cache: 'no-store' })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const json = await res.json()
+      const rec = json?.data || {} // <- อ่านจาก data.{col}
+      // map ตาม columns
+      const values = columns.map(col => (rec[col] ?? '-'))
+      return values
+    })
 
-        // เก็บ header (C,O,P,Q)
-        const h = json?.header || {}
-        headerRow.value = [
-          (h['C'] ?? '-'), // SO
-          (h['O'] ?? '-'), // Customer
-          (h['P'] ?? '-'), // Start
-          (h['Q'] ?? '-')  // End
-        ]
-
-        // แปลง VM rows
-        const list = (json?.rows || []).map(rec =>
-          columns.map(col => (rec?.[col] ?? '-'))
-        )
-        return list
-      })
-    )
-
-    rows.value = groups.flat()
-
-    // debug log
-    console.log('headerRow', headerRow.value)
-    console.log('rows', rows.value)
-
+    rows.value = await Promise.all(jobs)
   } catch (err) {
     console.error(err)
     alert('เกิดข้อผิดพลาด: ' + (err?.message || err))
@@ -95,27 +82,81 @@ async function fetchData() {
 </script>
 
 <template>
-  <div>
-    <!-- Input -->
-    <div v-for="(item, index) in inputs" :key="index" class="flex gap-2 my-2">
+  <div class="p-4 space-y-4 bg-[#fff] rounded-2xl shadow-2xs">
+    <p class="text-2xl font-bold">Loop mail ส่งเครื่อง POC ✉️</p>
+
+    <!-- เลือกประเภท / เติม Portal -->
+    <div class="text-left">
+      <label class="text-xl">คู่การเข้าใช้งาน : </label>
+      <select v-model="selectGuide" @change="validateDropdown" class="bg-white text-black rounded-xl border-2 p-2">
+        <option value="">กรุณาเลือก</option>
+        <option value="1">AHV</option>
+        <option value="2">Cloud Open Source (Proxmox)</option>
+      </select>
+    </div>
+
+    <div class="text-left">
+      <label class="text-xl">Portal : </label>
+      <div class="inline-block align-middle">
+        <span class="bg-white text-black rounded-xl border-2 p-2 inline-block min-w-[220px]">{{ portal || '-' }}</span>
+      </div>
+    </div>
+
+    <!-- เลขแถว -->
+    <div v-for="(item, index) in inputs" :key="index" class="flex items-center gap-2">
+      <label class="text-xl">แถว:</label>
       <input
         v-model="inputs[index]"
-        placeholder="เช่น 10000 หรือ SO-xxxx หรือ POC-xxxx"
-        class="border-1 border-black rounded px-[7.2px] py-[5.4px] w-full"
+        class="bg-white rounded-xl text-black text-xl p-2 w-full border-2"
+        placeholder="เช่น 10000"
+        inputmode="numeric"
       />
       <template v-if="index === inputs.length - 1">
-        <button @click="addInput" class="bg-green-500 text-white px-[5.4px] py-[2.7px] rounded"><Plus class="w-4 h-4" /></button>
-        <button @click="removeInput" class="bg-red-500 text-white px-[5.4px] py-[2.7px] rounded"><Minus class="w-4 h-4" /></button>
+        <button @click="addInput" class="bg-green-500 text-white px-3 py-1 rounded-2xl hover:opacity-70">
+          <Plus class="w-4 h-6" />
+        </button>
+        <button @click="removeInput" class="bg-red-500 text-white px-3 py-1 rounded-2xl hover:opacity-70">
+          <Minus class="w-4 h-6" />
+        </button>
       </template>
     </div>
 
-    <div class="mt-2">
-      <button @click="fetchData" :disabled="isLoading" class="bg-blue-600 text-white px-[10.8px] py-[5.4px] rounded mr-2">
-        {{ isLoading ? 'กำลังโหลด...' : 'ดึงข้อมูล' }}
-      </button>
-      <button @click="resetData" class="bg-gray-500 text-white px-[10.8px] py-[5.4px] rounded">รีเซต</button>
-    </div>
+    <button
+      @click="fetchData"
+      :disabled="isLoading"
+      class="bg-[#47ba87] text-white px-6 py-2 rounded-xl hover:opacity-80 mt-4 mr-2"
+    >
+      {{ isLoading ? 'กำลังโหลด...' : 'ดึงข้อมูล' }}
+    </button>
+  </div>
 
+  <!-- Loading -->
+  <div v-if="isLoading" class="flex items-center justify-center mt-4 text-[#47ba87]">
+    <svg class="animate-spin h-6 w-6 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l4-4-4-4v4a8 8 0 00-8 8z" />
+    </svg>
+    <span class="text-lg">กำลังโหลดข้อมูล...</span>
+  </div>
+
+  <div v-if="rows.length > 0" class="font-serif bg-white p-2 mt-2">
+    <!-- ส่วนหัวจดหมาย -->
+    <p class="text-[#0000ff] text-left text-[14px]">*** Confidential ***</p>
+    <br />
+    <p class="text-black text-left font-bold text-[14px]">เรียนผู้ใช้บริการ</p>
+    <br />
+    <div class="w-full text-left">
+      <span class="whitespace-pre-wrap text-black bg-transparent font-normal not-italic align-baseline no-underline text-[14px]">
+        ทางบริษัท อินเทอร์เน็ตประเทศไทย จำกัด (มหาชน) (INET)
+        ขอขอบพระคุณผู้ใช้บริการเป็นอย่างสูงที่ให้ความไว้วางใจทดสอบใช้บริการ Cloud (ไม่เสียค่าบริการ)
+        โดยทาง INET ขออนุญาตแจ้งรายละเอียดบริการและรายละเอียดของระบบ ดังนี้
+      </span>
+      <p class="text-black text-[14px]">
+        <span class="font-bold"><br />รบกวนผู้ใช้บริการตรวจสอบการใช้งาน Service และยืนยันผลการใช้งาน</span>
+        : ____________ ( โปรดระบุ: <span class="bg-[#00ff00]">ใช้งานได้</span>/
+        <span class="bg-[#ff0000]">ใช้งานไม่ได้</span> )
+      </p>
+    </div>
     <br />
 
     <!-- ตารางหัว SO/Customer/Period -->
@@ -138,6 +179,23 @@ async function fetchData() {
             <th class="border-1 border-black bg-[#bfbfbf] pr-[5.4px] pl-[5.4px]">ระยะเวลาในการทดสอบ</th>
             <td class="pr-[5.4px] pl-[5.4px]">
               {{ rowData[2]?.replace(/-/g, '/') }} - {{ rowData[3]?.replace(/-/g, '/') }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <br />
+
+      <!-- Portal Guide -->
+      <table class="text-black border-1 border-black text-left bg-white text-[14px]">
+        <tbody>
+          <tr>
+            <th class="border-1 border-black text-black bg-[#bfbfbf] pr-[5.4px] pl-[5.4px]">
+              Portal Manual<br />{{ portal || '-' }}
+            </th>
+            <td class="pr-[5.4px] pl-[5.4px]">
+              <a :href="portalguide || '#'" target="_blank" rel="noopener noreferrer" class="text-black underline decoration-[#1155cc]">
+                {{ portalguide || '-' }}
+              </a>
             </td>
           </tr>
         </tbody>
@@ -173,7 +231,7 @@ async function fetchData() {
       </table>
       <br />
 
-      <!-- รายการ VM -->
+      <!-- รายการ VM ตาม rows -->
       <div v-for="(rowData, index) in rows" :key="index" class="mb-8">
         <table class="bg-white text-black border-1 border-black text-left text-[14px]">
           <tbody>
@@ -241,7 +299,6 @@ async function fetchData() {
           </tbody>
         </table>
       </div>
-
 
       <!-- Policy -->
       <p class="text-[12pt] text-left text-black font-bold">Policy Firewall</p>
