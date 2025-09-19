@@ -5,19 +5,24 @@ import { Plus, Minus } from 'lucide-vue-next'
 /** ====== CONFIG ====== */
 const API_BASE = 'https://backend-tools-provision.onrender.com'
 const columns = ['C', 'O', 'P', 'Q', 'Z', 'AB', 'AC', 'AG', 'AH', 'AI', 'AJ', 'AS']
-// 0:C(SO), 1:O(Customer), 2:P(Start), 3:Q(End)
-// 4:Z(Name), 5:AB(Private), 6:AC(Public), 7:AG(vCPU),
-// 8:AH(vRAM), 9:AI(vDisk), 10:AJ(OS), 11:AS(User)
+// 0:C(SO), 1:O(Customer), 2:P(Start), 3:Q(End),
+// 4:Z(Name), 5:AB(Private), 6:AC(Public), 7:AG(vCPU), 8:AH(vRAM), 9:AI(vDisk), 10:AJ(OS), 11:AS(User)
 
 /** ====== STATE ====== */
 const inputs = ref([''])
-const rows = ref([])         // Array<Array<string>> สำหรับ VM แต่ละเครื่อง
-const headerRow = ref(null)  // เก็บหัวตาราง SO/Customer/Period
+const rows = ref([])             // [[..., ...], ...] ตาม columns
+const headerRow = ref(null)      // [C,O,P,Q]
 const isLoading = ref(false)
 
 const portal = ref('')
 const portalguide = ref('')
 const selectGuide = ref('')
+
+/** ====== COMPUTED ====== */
+const rowData = computed(() =>
+  (headerRow.value && headerRow.value.length ? headerRow.value : (rows.value[0] || []))
+)
+const vmCount = computed(() => rows.value.length)
 
 /** ====== ACTIONS ====== */
 function addInput() { inputs.value.push('') }
@@ -30,12 +35,6 @@ function resetData() {
   portal.value = ''
   portalguide.value = ''
 }
-
-/** ====== COMPUTED ====== */
-const rowData = computed(() => headerRow.value || rows.value[0] || [])
-const vmCount = computed(() => rows.value.length)
-
-/** ====== Dropdown ====== */
 function validateDropdown() {
   if (selectGuide.value === '1') {
     portal.value = 'AHV'
@@ -49,12 +48,11 @@ function validateDropdown() {
   }
 }
 
-/** ====== ดึงข้อมูลจาก API ====== */
+/** ====== FETCH ====== */
 async function fetchData() {
   rows.value = []
   headerRow.value = null
   isLoading.value = true
-
   try {
     const queries = inputs.value
       .map(v => (v ?? '').toString().trim())
@@ -64,7 +62,7 @@ async function fetchData() {
 
     const groups = await Promise.all(
       queries.map(async (q) => {
-        // case 1: row number
+        // เป็นเลขล้วน -> โหมด row เดี่ยว
         if (/^\d+$/.test(q)) {
           const url = `${API_BASE}/sheet?row=${encodeURIComponent(q)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
           const res = await fetch(url, { cache: 'no-store' })
@@ -72,28 +70,23 @@ async function fetchData() {
           const json = await res.json()
           const rec = json?.data || {}
           const one = columns.map(col => (rec[col] ?? '-'))
-          if (!headerRow.value) {
-            headerRow.value = [one[0], one[1], one[2], one[3]]
-          }
+          if (!headerRow.value) headerRow.value = [one[0], one[1], one[2], one[3]]
           return [one]
         }
 
-        // case 2: SO-/POC-
+        // เป็น SO-/POC- -> หลายเครื่อง
         const url = `${API_BASE}/sheet?so_number=${encodeURIComponent(q)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
         const res = await fetch(url, { cache: 'no-store' })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const json = await res.json()
 
+        // header จาก json.header
         const h = json?.header || {}
         if (!headerRow.value) {
-          headerRow.value = [
-            (h['C'] ?? '-'),
-            (h['O'] ?? '-'),
-            (h['P'] ?? '-'),
-            (h['Q'] ?? '-')
-          ]
+          headerRow.value = [(h['C'] ?? '-'), (h['O'] ?? '-'), (h['P'] ?? '-'), (h['Q'] ?? '-')]
         }
 
+        // แปลง rows[].data -> อาร์เรย์ตาม columns
         const list = (json?.rows || []).map(item =>
           columns.map(col => (item?.data?.[col] ?? '-'))
         )
@@ -103,11 +96,8 @@ async function fetchData() {
 
     rows.value = groups.flat()
 
-    // Debug log
     console.log('headerRow:', headerRow.value)
-    console.log('rows (array):', rows.value)
-    console.table(rows.value)
-
+    console.log('rows:', rows.value)
   } catch (err) {
     console.error(err)
     alert('เกิดข้อผิดพลาด: ' + (err?.message || err))
