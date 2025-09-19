@@ -5,14 +5,14 @@ import { Plus, Minus } from 'lucide-vue-next'
 /** ===== CONFIG ===== */
 const API_BASE = 'https://backend-tools-provision.onrender.com'
 const columns = ['C', 'O', 'P', 'Q', 'Z', 'AB', 'AC', 'AG', 'AH', 'AI', 'AJ', 'AS']
-// index mapping อ้างอิงใน template:
+// index mapping:
 // 0:C=SO, 1:O=Customer, 2:P=Start, 3:Q=End,
 // 4:Z=VM Name, 5:AB=IP Private, 6:AC=IP Public,
 // 7:AG=vCPU, 8:AH=vRAM, 9:AI=vDisk, 10:AJ=OS, 11:AS=Username
 
 /** ===== STATE ===== */
-const inputs = ref([''])          // รับค่า SO/POC หรือ Row
-const rows = ref([])              // ผลแต่ละแถว
+const inputs = ref([''])     // user กรอก SO/POC/Row
+const rows = ref([])         // list ของ VM ที่ดึงได้
 const selectGuide = ref('')
 const portal = ref('')
 const portalguide = ref('')
@@ -20,9 +20,7 @@ const isLoading = ref(false)
 
 /** ===== COMPUTED ===== */
 const rowData = computed(() => rows.value[0] || [])
-const vmCount = computed(() =>
-  inputs.value.filter(i => (i ?? '').toString().trim() !== '').length
-)
+const vmCount = computed(() => rows.value.length)
 
 /** ===== ACTIONS ===== */
 function addInput() { inputs.value.push('') }
@@ -61,21 +59,31 @@ async function fetchData() {
     const jobs = queryList.map(async (query) => {
       let url = ''
       if (/^\d+$/.test(query)) {
-        // ถ้า user กรอกเป็นตัวเลขล้วน → ใช้ row=...
+        // ถ้า user กรอกเป็นเลข row
         url = `${API_BASE}/sheet?row=${encodeURIComponent(query)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
       } else {
-        // ถ้าเป็น SO-xxx หรือ POC-xxx → ใช้ so_number=...
+        // ถ้าเป็น SO-xxx หรือ POC-xxx
         url = `${API_BASE}/sheet?so_number=${encodeURIComponent(query)}&columns_sendVM=${encodeURIComponent(columnsParam)}`
       }
 
       const res = await fetch(url, { cache: 'no-store' })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const json = await res.json()
-      const rec = json?.data || {}
-      return columns.map(col => (rec[col] ?? '-'))
+
+      if (json.rows) {
+        // ✅ ถ้า API ส่งกลับมาเป็นหลาย VM
+        return json.rows.map(r =>
+          columns.map(col => (r.data?.[col] ?? '-'))
+        )
+      } else {
+        // ✅ ถ้า API ส่งกลับมาเป็น VM เดียว
+        const rec = json?.data || {}
+        return [columns.map(col => (rec[col] ?? '-'))]
+      }
     })
 
-    rows.value = await Promise.all(jobs)
+    const resultNested = await Promise.all(jobs)
+    rows.value = resultNested.flat()
   } catch (err) {
     console.error(err)
     alert('เกิดข้อผิดพลาด: ' + (err?.message || err))
@@ -86,10 +94,10 @@ async function fetchData() {
 </script>
 
 <template>
-  <div class="p-4 space-y-4 bg-[#fff] rounded-2xl shadow-2xs">
+  <div class="p-4 space-y-4 bg-white rounded-2xl shadow-2xs">
     <p class="text-2xl font-bold">Loop mail ส่งเครื่อง POC ✉️</p>
 
-    <!-- เลือกประเภท / เติม Portal -->
+    <!-- เลือกประเภท / Portal -->
     <div class="text-left">
       <label class="text-xl">คู่การเข้าใช้งาน : </label>
       <select v-model="selectGuide" @change="validateDropdown" class="bg-white text-black rounded-xl border-2 p-2">
@@ -101,19 +109,16 @@ async function fetchData() {
 
     <div class="text-left">
       <label class="text-xl">Portal : </label>
-      <div class="inline-block align-middle">
-        <span class="bg-white text-black rounded-xl border-2 p-2 inline-block min-w-[220px]">{{ portal || '-' }}</span>
-      </div>
+      <span class="bg-white text-black rounded-xl border-2 p-2 inline-block min-w-[220px]">{{ portal || '-' }}</span>
     </div>
 
-    <!-- เลขแถว -->
+    <!-- Input -->
     <div v-for="(item, index) in inputs" :key="index" class="flex items-center gap-2">
-      <label class="text-xl">แถว:</label>
+      <label class="text-xl">ค้นหา:</label>
       <input
         v-model="inputs[index]"
         class="bg-white rounded-xl text-black text-xl p-2 w-full border-2"
-        placeholder="เช่น 10000"
-        inputmode="numeric"
+        placeholder="เช่น 10000 หรือ SO-123456 หรือ POC-78910"
       />
       <template v-if="index === inputs.length - 1">
         <button @click="addInput" class="bg-green-500 text-white px-3 py-1 rounded-2xl hover:opacity-70">
@@ -143,116 +148,61 @@ async function fetchData() {
     <span class="text-lg">กำลังโหลดข้อมูล...</span>
   </div>
 
+  <!-- Output -->
   <div v-if="rows.length > 0" class="font-serif bg-white p-2 mt-2">
-    <!-- ส่วนหัวจดหมาย -->
+    <!-- Header -->
     <p class="text-[#0000ff] text-left text-[14px]">*** Confidential ***</p>
-    <br />
-    <p class="text-black text-left font-bold text-[14px]">เรียนผู้ใช้บริการ</p>
-    <br />
-    <div class="w-full text-left">
-      <span class="whitespace-pre-wrap text-black bg-transparent font-normal not-italic align-baseline no-underline text-[14px]">
-        ทางบริษัท อินเทอร์เน็ตประเทศไทย จำกัด (มหาชน) (INET)
-        ขอขอบพระคุณผู้ใช้บริการเป็นอย่างสูงที่ให้ความไว้วางใจทดสอบใช้บริการ Cloud (ไม่เสียค่าบริการ)
-        โดยทาง INET ขออนุญาตแจ้งรายละเอียดบริการและรายละเอียดของระบบ ดังนี้
-      </span>
-      <p class="text-black text-[14px]">
-        <span class="font-bold"><br />รบกวนผู้ใช้บริการตรวจสอบการใช้งาน Service และยืนยันผลการใช้งาน</span>
-        : ____________ ( โปรดระบุ: <span class="bg-[#00ff00]">ใช้งานได้</span>/
-        <span class="bg-[#ff0000]">ใช้งานไม่ได้</span> )
-      </p>
-    </div>
-    <br />
+    <p class="text-black text-left font-bold text-[14px] mt-2">เรียนผู้ใช้บริการ</p>
 
-    <!-- ตารางหัว SO/Customer/Period -->
-    <div class="font-sans text-[14px]">
-      <table class="text-left text-black border-1 border-black bg-white py-0 px-[7.2px]">
+    <!-- Info -->
+    <table class="text-left text-black border border-black bg-white text-[14px] mt-4">
+      <tbody>
+        <tr>
+          <th class="border border-black bg-[#bfbfbf]">SO-NUMBER</th>
+          <td class="w-[350px]">{{ rowData[0] }}</td>
+        </tr>
+        <tr>
+          <th class="border border-black bg-[#bfbfbf]">Customer Name</th>
+          <td>{{ rowData[1] }}</td>
+        </tr>
+        <tr>
+          <th class="border border-black bg-[#bfbfbf]">Service</th>
+          <td>IaaS</td>
+        </tr>
+        <tr>
+          <th class="border border-black bg-[#bfbfbf]">ระยะเวลาในการทดสอบ</th>
+          <td>{{ rowData[2]?.replace(/-/g, '/') }} - {{ rowData[3]?.replace(/-/g, '/') }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Summary -->
+    <table class="border border-black bg-white text-[14px] mt-4">
+      <tbody>
+        <tr>
+          <th class="border border-black bg-[#bfbfbf]">จำนวน VM</th>
+          <td>{{ vmCount }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- VM List -->
+    <div v-for="(rowData, index) in rows" :key="index" class="mb-6 mt-4">
+      <table class="border border-black bg-white text-[14px] w-full">
         <tbody>
-          <tr class="border-1 border-black">
-            <th class="border-1 border-black bg-[#bfbfbf] pr-[5.4px] pl-[5.4px]">SO-NUMBER</th>
-            <td class="w-[350px] pr-[5.4px] pl-[5.4px]">{{ rowData[0] }}</td>
-          </tr>
-          <tr class="border-1 border-black">
-            <th class="border-1 border-black bg-[#bfbfbf] pr-[5.4px] pl-[5.4px]">Customer Name</th>
-            <td class="pr-[5.4px] pl-[5.4px]">{{ rowData[1] }}</td>
-          </tr>
-          <tr class="border-1 border-black">
-            <th class="border-1 border-black bg-[#bfbfbf] pr-[5.4px] pl-[5.4px]">Service</th>
-            <td class="pr-[5.4px] pl-[5.4px]">IaaS</td>
+          <tr class="bg-[#5b9bd5] text-black">
+            <th class="border border-black">VM Name #{{ index + 1 }}</th>
+            <td class="border border-black font-bold">{{ rowData[4] }}</td>
           </tr>
           <tr>
-            <th class="border-1 border-black bg-[#bfbfbf] pr-[5.4px] pl-[5.4px]">ระยะเวลาในการทดสอบ</th>
-            <td class="pr-[5.4px] pl-[5.4px]">
-              {{ rowData[2]?.replace(/-/g, '/') }} - {{ rowData[3]?.replace(/-/g, '/') }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <br />
-
-      <!-- Portal Guide -->
-      <table class="text-black border-1 border-black text-left bg-white text-[14px]">
-        <tbody>
-          <tr>
-            <th class="border-1 border-black text-black bg-[#bfbfbf] pr-[5.4px] pl-[5.4px]">
-              Portal Manual<br />{{ portal || '-' }}
-            </th>
-            <td class="pr-[5.4px] pl-[5.4px]">
-              <a :href="portalguide || '#'" target="_blank" rel="noopener noreferrer" class="text-black underline decoration-[#1155cc]">
-                {{ portalguide || '-' }}
-              </a>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <br />
-
-      <!-- สรุปเครื่องรวม -->
-      <table class="text-black border-1 border-black text-left bg-white text-[14px]">
-        <tbody>
-          <tr>
-            <th class="border-1 border-black text-black bg-[#bfbfbf] pr-[5.4px] pl-[5.4px]">Link Portal</th>
-            <td class="border-1 border-black text-red bg-[#bfbfbf] pr-[5.4px] pl-[5.4px]">XXX</td>
-            <th class="border-1 border-black text-black bg-[#bfbfbf] pr-[5.4px] pl-[5.4px] w-[154.521px]">Note</th>
+            <th class="border border-black">IP Private</th>
+            <td class="border border-black">{{ rowData[5] }}</td>
           </tr>
           <tr>
-            <th class="border-1 border-black text-black bg-[#bfbfbf] pr-[5.4px] pl-[5.4px]">Username</th>
-            <td class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">XXX</td>
-            <td class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]"></td>
-          </tr>
-          <tr>
-            <th class="border-1 border-black text-black bg-[#bfbfbf] text-left align-top pr-[5.4px] pl-[5.4px]">Password</th>
-            <td class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">
-              จัดส่งทางอีเมลล์ถัดไป ทาง Email :<br /> XXX@XXX.com
-            </td>
-            <td class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]"></td>
-          </tr>
-          <tr>
-            <th class="border-1 border-black text-black bg-[#bfbfbf] py-0 px-[7.2px]">จำนวน VM</th>
-            <td class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">{{ vmCount }}</td>
-            <td class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]"></td>
-          </tr>
-        </tbody>
-      </table>
-      <br />
-
-      <!-- รายการ VM ตาม rows -->
-      <div v-for="(rowData, index) in rows" :key="index" class="mb-8">
-        <table class="bg-white text-black border-1 border-black text-left text-[14px]">
-          <tbody>
-            <tr class="bg-[#5b9bd5] text-black border-1 border-black">
-              <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">VM Name #{{ index + 1 }}</th>
-              <td class="border-1 border-black text-black font-bold pr-[5.4px] pl-[5.4px]">{{ rowData[4] }}</td>
-              <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px] w-[154.521px]">Note</th>
-            </tr>
-            <tr class="text-black border-1 border-black">
-              <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">IP Private</th>
-              <td class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">{{ rowData[5] }}</td>
-              <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]"></th>
-            </tr>
-            <tr class="text-black border-1 border-black">
-              <th class="border-1 border-black text-black text-left align-top pr-[5.4px] pl-[5.4px]">IP Public</th>
-              <td class="border-1 border-black text-black pr-[5.4px] pl-[5.4px] text-left align-top">{{ rowData[6] }}</td>
-              <td class="border-1 border-black text-red-500 pr-[5.4px] pl-[5.4px]">
+            <th class="border border-black">IP Public</th>
+            <td class="border border-black">
+              {{ rowData[6] }}
+              <span class="ml-2 text-red-500">
                 {{
                   rowData[10] && (
                     rowData[10].toLowerCase().includes('windows') ||
@@ -261,49 +211,31 @@ async function fetchData() {
                     ? 'RDP : 14322'
                     : 'SSH : 14321'
                 }}
-              </td>
-            </tr>
-            <tr class="text-black border-1 border-black">
-              <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">Username</th>
-              <td class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">{{ rowData[11] }}</td>
-              <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]"></th>
-            </tr>
-            <tr class="text-black border-1 border-black">
-              <th class="border-1 border-black text-black text-left align-top pr-[5.4px] pl-[5.4px]">Password</th>
-              <td class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">
-                จัดส่งทางอีเมลล์ถัดไป ทาง Email : <br /> XXX@XXX.com
-              </td>
-              <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]"></th>
-            </tr>
-            <tr class="bg-[#70ad47] text-black border-1 border-black">
-              <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">Specification</th>
-              <td class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]"></td>
-              <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]"></th>
-            </tr>
-            <tr class="text-black border-1 border-black">
-              <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">vCPU (core)</th>
-              <td class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">{{ rowData[7] }}</td>
-              <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]"></th>
-            </tr>
-            <tr class="text-black border-1 border-black">
-              <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">vRAM (GB)</th>
-              <td class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">{{ rowData[8] }}</td>
-              <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]"></th>
-            </tr>
-            <tr class="text-black border-1 border-black">
-              <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">vDisk (GB)</th>
-              <td class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">{{ rowData[9] }}</td>
-              <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]"></th>
-            </tr>
-            <tr class="text-black border-1 border-black">
-              <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">OS</th>
-              <td class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]">{{ rowData[10] }}</td>
-              <th class="border-1 border-black text-black pr-[5.4px] pl-[5.4px]"></th>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <th class="border border-black">Username</th>
+            <td class="border border-black">{{ rowData[11] }}</td>
+          </tr>
+          <tr>
+            <th class="border border-black">vCPU</th>
+            <td class="border border-black">{{ rowData[7] }}</td>
+          </tr>
+          <tr>
+            <th class="border border-black">vRAM</th>
+            <td class="border border-black">{{ rowData[8] }}</td>
+          </tr>
+          <tr>
+            <th class="border border-black">vDisk</th>
+            <td class="border border-black">{{ rowData[9] }}</td>
+          </tr>
+          <tr>
+            <th class="border border-black">OS</th>
+            <td class="border border-black">{{ rowData[10] }}</td>
+          </tr>
+        </tbody>
+      </table>
       <!-- Policy -->
       <p class="text-[12pt] text-left text-black font-bold">Policy Firewall</p>
       <table class="text-left text-[14px]">

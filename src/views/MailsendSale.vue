@@ -3,26 +3,26 @@ import { ref } from 'vue'
 import { Plus, Minus } from 'lucide-vue-next'
 
 /** ====== CONFIG ====== */
-const API_BASE = 'https://backend-tools-provision.onrender.com' // <-- แก้ให้ตรงของคุณ
+const API_BASE = 'https://backend-tools-provision.onrender.com' // <-- URL backend
 const columns = ['Z', 'AB', 'AC', 'AG', 'AH', 'AI', 'AJ']       // รวม 7 คอลัมน์ (ตรงกับตาราง)
 
 /** ====== STATE ====== */
-const inputs = ref([''])      // รายการ "เลขแถว หรือ SO/POC" ที่ผู้ใช้กรอก
-const rows = ref([])          // ผลลัพธ์ที่ดึงมา (array ของ array ตาม columns)
+const inputs = ref([''])      // เลขแถว หรือ SO/POC ที่ผู้ใช้กรอก
+const rows = ref([])          // เก็บผลลัพธ์เป็น array ของ array
 const isLoading = ref(false)
 const selectTypeDoc = ref('') // 'poc' | 'newservice' | 'change' | ''
 
-/** ====== STATIC CONTENT (messageShow, detailImages เหมือนเดิม) ====== */
+/** ====== STATIC CONTENT ====== */
 const messageShow = {
-  poc: `...`, // (ไม่เปลี่ยน)
-  newservice: `...`,
-  change: `...`
+  poc: `<p class="text-black">เรียน ทีม POC</p>`,
+  newservice: `<p class="text-black">เรียน ทีม New Service</p>`,
+  change: `<p class="text-black">เรียน ทีม Change</p>`
 }
 
 const detailImages = {
-  poc: `...`,
-  newservice: `...`,
-  change: `...`
+  poc: `<p class="text-red-500">POC IMAGES</p>`,
+  newservice: `<p class="text-red-500">NEWSERVICE IMAGES</p>`,
+  change: `<p class="text-red-500">CHANGE IMAGES</p>`
 }
 
 /** ====== ACTIONS ====== */
@@ -35,7 +35,7 @@ function resetData() {
 }
 
 /**
- * fetchData รองรับทั้ง "row" (เลข) และ "so_number" (SO-xxxx หรือ POC-xxxx)
+ * fetchData รองรับทั้ง row (เลข) และ so_number (SO-/POC-)
  */
 async function fetchData() {
   rows.value = []
@@ -50,10 +50,10 @@ async function fetchData() {
         let url = ''
 
         if (/^\d+$/.test(val)) {
-          // ถ้าเป็นตัวเลขล้วน → ใช้ row
+          // 🔹 ถ้าเป็นเลขล้วน → ใช้ row
           url = `${API_BASE}/sheet?row=${encodeURIComponent(val)}&columns=${encodeURIComponent(columnsParam)}`
         } else {
-          // ถ้าเป็น SO-xxx หรือ POC-xxx → ใช้ so_number
+          // 🔹 ถ้าเป็น SO-xxx หรือ POC-xxx → ใช้ so_number
           url = `${API_BASE}/sheet?so_number=${encodeURIComponent(val)}&columns=${encodeURIComponent(columnsParam)}`
         }
 
@@ -61,11 +61,20 @@ async function fetchData() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const data = await res.json()
 
-        const rec = data?.data || {}
-        return columns.map(col => (rec[col] ?? '-'))
+        if (data.rows) {
+          // 🔹 ได้หลาย record (จาก so_number)
+          return data.rows.map(rec =>
+            columns.map(col => (rec.data?.[col] ?? '-'))
+          )
+        } else {
+          // 🔹 ได้ record เดียว (จาก row)
+          const rec = data?.data || {}
+          return [columns.map(col => (rec[col] ?? '-'))]
+        }
       })
 
-    rows.value = await Promise.all(jobs)
+    const resultNested = await Promise.all(jobs)
+    rows.value = resultNested.flat()
   } catch (err) {
     console.error(err)
     alert('ดึงข้อมูลไม่สำเร็จ: ' + (err?.message || err))
