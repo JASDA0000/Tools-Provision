@@ -134,17 +134,9 @@ async function fetchData() {
       <input
         v-model="inputs[index]"
         class="bg-white rounded-xl text-black text-xl p-2 w-full border-2"
-        placeholder="เช่น 10000"
+        placeholder="เช่น 10000 หรือ SO-123456 หรือ POC-78910"
         inputmode="numeric"
       />
-      <template v-if="index === inputs.length - 1">
-        <button @click="addInput" class="bg-green-500 text-white px-3 py-1 rounded-2xl hover:opacity-70">
-          <Plus class="w-4 h-6" />
-        </button>
-        <button @click="removeInput" class="bg-red-500 text-white px-3 py-1 rounded-2xl hover:opacity-70">
-          <Minus class="w-4 h-6" />
-        </button>
-      </template>
     </div>
 
     <button
