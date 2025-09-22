@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { Home, Mail, Table, Lock, Menu } from 'lucide-vue-next'
+import { Home, Mail, Table, Lock, Menu,BrickWallFire } from 'lucide-vue-next'
 
 const props = defineProps({
   show: Boolean,
@@ -57,6 +57,9 @@ onBeforeUnmount(() => {
           </router-link>
           <router-link to="/MailsendSale" class="hover:bg-gray-700 p-2 rounded flex items-center gap-2">
             <Table class="w-5 h-5" /> ตารางเครื่อง
+          </router-link>
+          <router-link to="/Policy" class="hover:bg-gray-700 p-2 rounded flex items-center gap-2">
+            <BrickWallFire class="w-5 h-5" /> Policy IP
           </router-link>
           <router-link to="/PasswordGen" class="hover:bg-gray-700 p-2 rounded flex items-center gap-2">
             <Lock class="w-5 h-5" /> สุ่มรหัสผ่าน
