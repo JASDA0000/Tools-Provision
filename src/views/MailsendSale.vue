@@ -97,7 +97,7 @@ async function fetchData() {
 
 <template>
   <div>
-    <p class="font-bold text-3xl">📋 Tools-Provision</p>
+    <p class="font-bold text-2xl ">📋 Tools-Provision</p>
 
     <div class="bg-[#fff] text-black p-4 shadow-xs rounded-2xl w-full mt-2">
       <div class="text-left">

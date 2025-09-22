@@ -108,8 +108,8 @@ async function fetchData() {
 </script>
 
 <template>
+  <p class="text-2xl font-bold">Loop mail ส่งเครื่อง POC ✉️</p>
   <div class="p-4 space-y-4 bg-[#fff] rounded-2xl shadow-2xs">
-    <p class="text-2xl font-bold">Loop mail ส่งเครื่อง POC ✉️</p>
 
     <!-- เลือกประเภท / เติม Portal -->
     <div class="text-left">
