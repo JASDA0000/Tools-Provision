@@ -15,6 +15,8 @@ const selectTypeDoc = ref('') // 'poc' | 'newservice' | 'change' | ''
 const messageShow = {
   poc: `<p class="text-black">เรียน ทีม </p>
     <p class="ml-[32px]">ทางทีมดำเนินการสร้างเครื่องและจัดส่งให้ลูกค้าเรียบร้อยแล้ว โดยมีรายละเอียดดังนี้ครับ</p>`,
+    test : `<p class="text-black">เรียน ทีม </p>
+    <p class="ml-[32px]">ทางทีม Cloud ดำเนินการตรวจสอบ Spec VM ตรงกับเอกสาร โดยมีรายละเอียดดังนี้ครับ</p>`,
   newservice: `<p class="text-black">เรียน ทีม </p>
     <p class="ml-[32px]">
      ทางทีมดำเนินการย้าย Zone จาก POC เป็น PRD เรียบร้อยแล้ว โดยมีรายละเอียดดังนี้ครับ อ้างอิง SO/POC-xxxxxx</p>`,
@@ -28,6 +30,7 @@ const messageShow = {
 
 const detailImages = {
   poc: `<p class="text-red-500">POC รูปหน้าเครื่อง รูปถึง รูป zabbix รูป smartup รูป crowdstrike</p>`,
+  test: `<p class="text-red-500">TEST รูปหน้าเครื่อง รูปถัง Backup </p>`,
   newservice: `<p class="text-red-500">NEWSERVICE IMAGES</p>`,
   change_renew: `<p class="text-red-500">CHANGE IMAGES</p>`,
   renew_and_change: `<p class="text-red-500">CHANGE IMAGES</p>`
@@ -102,6 +105,7 @@ async function fetchData() {
         <select v-model="selectTypeDoc" class="text-black bg-white border-2 rounded-xl p-2">
           <option value="">กรุณาเลือก</option>
           <option value="poc">POC</option>
+          <option value="test">ต่อ Test</option>
           <option value="newservice">New Service</option>
           <option value="change_renew">Change / Renew</option>
           <option value="renew_and_change">Renew & Change</option>
