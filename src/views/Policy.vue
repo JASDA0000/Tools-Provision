@@ -14,6 +14,7 @@ import Card from '../components/Card.vue';
           <option value="dedicate">IP Dedicate</option>
         </select>
         </div>
+        
         </Card>
     </div>
 </template>
