@@ -208,9 +208,28 @@ async function fetchData() {
         <tbody>
           <tr>
             <th class="border-1 border-black text-black bg-[#bfbfbf] pr-[5.4px] pl-[5.4px]">
+              Terms of Use <br />
+            </th>
+            <td class="pr-[5.4px] pl-[5.4px] border-1">
+            <a href="https://ocp-cloud.inet.co.th/owncloud/index.php/s/dVtV53eqo10Hrmj" target="_blank" rel="noopener noreferrer" class="text-black underline decoration-[#1155cc]">
+                https://ocp-cloud.inet.co.th/owncloud/index.php/s/dVtV53eqo10Hrmj</a>
+            </td>
+          </tr>
+          <tr>
+            <th class="border-1 border-black text-black bg-[#bfbfbf] pr-[5.4px] pl-[5.4px]">
+              SLA<br />
+            </th>
+            <td class="pr-[5.4px] pl-[5.4px] border-1">
+              <a :href="portalguide || '#'" target="_blank" rel="noopener noreferrer" class="text-black underline decoration-[#1155cc]">
+                {{ portalguide || '-' }}
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <th class="border-1 border-black text-black bg-[#bfbfbf] pr-[5.4px] pl-[5.4px]">
               Portal Manual<br />{{ portal || '-' }}
             </th>
-            <td class="pr-[5.4px] pl-[5.4px]">
+            <td class="pr-[5.4px] pl-[5.4px] border-1">
               <a :href="portalguide || '#'" target="_blank" rel="noopener noreferrer" class="text-black underline decoration-[#1155cc]">
                 {{ portalguide || '-' }}
               </a>
