@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { Plus, Minus } from 'lucide-vue-next'
+import { Copy, Check } from 'lucide-vue-next'
+import Card from '../components/Card.vue'
 
 /** ====== CONFIG ====== */
 const API_BASE = 'https://backend-tools-provision.onrender.com'
@@ -13,6 +14,7 @@ const inputs = ref([''])
 const rows = ref([])             // [[..., ...], ...] ตาม columns
 const headerRow = ref(null)      // [C,O,P,Q]
 const isLoading = ref(false)
+const showToast = ref(false)
 
 const portal = ref('')
 const portalguide = ref('')
@@ -105,6 +107,19 @@ async function fetchData() {
     isLoading.value = false
   }
 }
+// หัวเมลแบบ static + dynamic
+const mailSubject = computed(() => {
+  const customer = rowData.value[1] || 'ชื่อบริษัท'
+  return `[INET-Cloud Computing] รายละเอียดการทดสอบใช้บริการ Cloud IaaS ${customer}`
+})
+// ฟังก์ชันคัดลอกข้อความ
+
+function copySubject() {
+  navigator.clipboard.writeText(mailSubject.value).then(() => {
+    showToast.value = true
+    setTimeout(() => (showToast.value = false), 2000) // ซ่อนหลัง 2 วิ
+  })
+}
 </script>
 
 <template>
@@ -113,7 +128,7 @@ async function fetchData() {
 
     <!-- เลือกประเภท / เติม Portal -->
     <div class="text-left">
-      <label class="text-xl">คู่การเข้าใช้งาน : </label>
+      <label class="text-xl font-bold">คู่การเข้าใช้งาน : </label>
       <select v-model="selectGuide" @change="validateDropdown" class="bg-white text-black rounded-xl border-2 p-2">
         <option value="">กรุณาเลือก</option>
         <option value="1">AHV</option>
@@ -122,7 +137,7 @@ async function fetchData() {
     </div>
 
     <div class="text-left">
-      <label class="text-xl">Portal : </label>
+      <label class="text-xl font-bold">Portal : </label>
       <div class="inline-block align-middle">
         <span class="bg-white text-black rounded-xl border-2 p-2 inline-block min-w-[220px]">{{ portal || '-' }}</span>
       </div>
@@ -130,24 +145,58 @@ async function fetchData() {
 
     <!-- เลขแถว -->
     <div v-for="(item, index) in inputs" :key="index" class="flex items-center gap-2">
-      <label class="text-xl">แถว:</label>
+      <label class="text-xl font-bold whitespace-nowrap">ป้อนเลข SO/POC  </label>
       <input
         v-model="inputs[index]"
         class="bg-white rounded-xl text-black text-xl p-2 w-full border-2"
         placeholder="เช่น 10000 หรือ SO-123456 หรือ POC-78910"
         inputmode="numeric"
+        @keyup.enter="fetchData"
       />
     </div>
+    <!-- กล่องข้อควาหัวเมล -->
+    <div class="text-left">
+  <label class="text-xl font-bold">หัวเมล:</label>
+  <div class="relative">
+    <!-- กล่องข้อความหัวเมล -->
+    <input
+      type="text"
+      :value="mailSubject"
+      readonly
+      class="bg-white rounded-xl text-black text-xl p-2 w-full border-2 pr-12"
+    />
 
+    <!-- ปุ่มคัดลอก -->
+    <button
+      type="button"
+      @click="copySubject"
+      class="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center w-8 h-8 rounded-lg border hover:bg-gray-100"
+        title="คัดลอก"
+      >
+      <Copy class="w-5 h-5" />
+    </button>
+  </div>
+</div>
+<!-- Toast -->
+  <transition name="fade">
+    <div
+      v-if="showToast"
+      class="fixed bottom-6 right-6 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2"
+    >
+      <Check class="w-5 h-5" />
+      <span>คัดลอกหัวเมลเรียบร้อย ✅</span>
+    </div>
+  </transition>
+  <!-- ปุ่มดึงข้อมูล  -->
     <button
       @click="fetchData"
       :disabled="isLoading"
       class="bg-[#47ba87] text-white px-6 py-2 rounded-xl hover:opacity-80 mt-4 mr-2"
+     
     >
       {{ isLoading ? 'กำลังโหลด...' : 'ดึงข้อมูล' }}
     </button>
   </div>
-
   <!-- Loading -->
   <div v-if="isLoading" class="flex items-center justify-center mt-4 text-[#47ba87]">
     <svg class="animate-spin h-6 w-6 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -156,7 +205,6 @@ async function fetchData() {
     </svg>
     <span class="text-lg">กำลังโหลดข้อมูล...</span>
   </div>
-
   <div v-if="rows.length > 0" class="font-serif bg-white p-2 mt-2">
     <!-- ส่วนหัวจดหมาย -->
     <p class="text-[#0000ff] text-left text-[14px]">*** Confidential ***</p>
