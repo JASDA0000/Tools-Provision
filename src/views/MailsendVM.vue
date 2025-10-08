@@ -234,21 +234,21 @@ function copySubject() {
     </colgroup>
         <tbody>
           <tr class="border-1 border-black">
-            <th class="border-1 border-black bg-[#bfbfbf] p-[5.4px] 
+            <th class="border-1 border-black bg-[#bfbfbf] p-2 
 ">SO-NUMBER</th>
-            <td class="w-[350px] p-[5.4px]">{{ rowData[0] }}</td>
+            <td class="w-[350px] p-2">{{ rowData[0] }}</td>
           </tr>
           <tr class="border-1 border-black">
-            <th class="border-1 border-black bg-[#bfbfbf] p-[5.4px]">Customer Name</th>
-            <td class="p-[5.4px]">{{ rowData[1] }}</td>
+            <th class="border-1 border-black bg-[#bfbfbf] p-2">Customer Name</th>
+            <td class="p-2">{{ rowData[1] }}</td>
           </tr>
           <tr class="border-1 border-black">
-            <th class="border-1 border-black bg-[#bfbfbf] p-[5.4px]">Service</th>
-            <td class="p-[5.4px]">IaaS</td>
+            <th class="border-1 border-black bg-[#bfbfbf] p-2">Service</th>
+            <td class="p-2">IaaS</td>
           </tr>
           <tr>
-            <th class="border-1 border-black bg-[#bfbfbf] p-[5.4px]">ระยะเวลาในการทดสอบ</th>
-            <td class="p-[5.4px]">
+            <th class="border-1 border-black bg-[#bfbfbf] p-2">ระยะเวลาในการทดสอบ</th>
+            <td class="p-2">
               {{ rowData[2]?.replace(/-/g, '/') }} - {{ rowData[3]?.replace(/-/g, '/') }}
             </td>
           </tr>
@@ -260,21 +260,21 @@ function copySubject() {
       <table class="text-black  border-1 border-black text-left bg-white text-[14px] w-[600px] py-0 px-[7.2px]">
         <tbody>
           <tr>
-            <th class="border-1 border-black text-black bg-[#bfbfbf] p-[5.4px] w-[180px] ">
+            <th class="border-1 border-black text-black bg-[#bfbfbf] p-2 w-[180px] ">
               Terms of Use <br />
             </th>
-            <td class="p-[5.4px] border-1">
+            <td class="p-2 border-1">
             <a href="https://ocp-cloud.inet.co.th/owncloud/index.php/s/dVtV53eqo10Hrmj" target="_blank" rel="noopener noreferrer" class="text-black underline decoration-[#1155cc]">
                 https://ocp-cloud.inet.co.th/owncloud/index.php/s/dVtV53eqo10Hrmj</a>
             </td>
           </tr>
           <tr>
-            <th class="border-1 border-black text-black bg-[#bfbfbf] p-[5.4px] text-left ">
+            <th class="border-1 border-black text-black bg-[#bfbfbf] p-2 text-left ">
               SLA<br /> 
             </th>
-            <td class="p-[5.4px] border-1">
-              <a :href="portalguide || '#'" target="_blank" rel="noopener noreferrer" class="text-black underline decoration-[#1155cc]">
-                {{ portalguide || '-' }}
+            <td class="p-2 border-1">
+              <a href="https://ocp-cloud.inet.co.th/owncloud/index.php/s/7mmzlX0fQp7FfsW" target="_blank" rel="noopener noreferrer" class="text-black underline decoration-[#1155cc]">
+                https://ocp-cloud.inet.co.th/owncloud/index.php/s/7mmzlX0fQp7FfsW
               </a>
             </td>
           </tr>
@@ -287,10 +287,10 @@ function copySubject() {
       <table class="text-black  border-1 border-black text-left bg-white text-[14px] w-[600px]">
         <tbody>
           <tr>
-            <th class="border-1 border-black text-black bg-[#bfbfbf] p-[5.4px] w-[180px]">
+            <th class="border-1 border-black text-black bg-[#bfbfbf] p-2 w-[180px]">
               Portal Manual<br />{{ portal || '-' }}
             </th>
-            <td class="p-[5.4px] border-1">
+            <td class="p-2 border-1">
               <a :href="portalguide || '#'" target="_blank" rel="noopener noreferrer" class="text-black underline decoration-[#1155cc]">
                 {{ portalguide || '-' }}
               </a>
@@ -306,26 +306,26 @@ function copySubject() {
         
         <tbody>
           <tr>
-            <th class="border-1 border-black text-black bg-[#bfbfbf] p-[5.4px]  w-[180px]">Link Portal</th>
-            <td class="border-1 border-black text-red bg-[#bfbfbf] p-[5.4px]">XXX</td>
-            <th class="border-1 border-black text-black bg-[#bfbfbf] p-[5.4px] w-[154.521px]">Note</th>
+            <th class="border-1 border-black text-black bg-[#bfbfbf] p-2  w-[180px]">Link Portal</th>
+            <td class="border-1 border-black text-red bg-[#bfbfbf] p-2">XXX</td>
+            <th class="border-1 border-black text-black bg-[#bfbfbf] p-2 w-[154.521px]">Note</th>
           </tr>
           <tr>
-            <th class="border-1 border-black text-black bg-[#bfbfbf] p-[5.4px] ">Username</th>
-            <td class="border-1 border-black text-black p-[5.4px]">XXX</td>
-            <td class="border-1 border-black text-black p-[5.4px]"></td>
+            <th class="border-1 border-black text-black bg-[#bfbfbf] p-2 ">Username</th>
+            <td class="border-1 border-black text-black p-2">XXX</td>
+            <td class="border-1 border-black text-black p-2"></td>
           </tr>
           <tr>
-            <th class="border-1 border-black text-black bg-[#bfbfbf] text-left align-top p-[5.4px]">Password</th>
-            <td class="border-1 border-black text-black p-[5.4px]">
+            <th class="border-1 border-black text-black bg-[#bfbfbf] text-left align-top p-2">Password</th>
+            <td class="border-1 border-black text-black p-2">
               จัดส่งทางอีเมลล์ถัดไป ทาง Email :<br /> XXX@XXX.com
             </td>
-            <td class="border-1 border-black text-black p-[5.4px]"></td>
+            <td class="border-1 border-black text-black p-2"></td>
           </tr>
           <tr>
-            <th class="border-1 border-black text-black bg-[#bfbfbf] p-[5.4px]">จำนวน VM</th>
-            <td class="border-1 border-black text-black p-[5.4px]">{{ vmCount }}</td>
-            <td class="border-1 border-black text-black p-[5.4px]"></td>
+            <th class="border-1 border-black text-black bg-[#bfbfbf] p-2">จำนวน VM</th>
+            <td class="border-1 border-black text-black p-2">{{ vmCount }}</td>
+            <td class="border-1 border-black text-black p-2"></td>
           </tr>
         </tbody>
       </table>
@@ -336,9 +336,9 @@ function copySubject() {
         <table class="bg-white text-black border-1 border-black text-left text-[14px] w-[600px]">
           <tbody>
             <tr class="bg-[#5b9bd5] text-black border-1 border-black">
-              <th class="border-1 border-black text-black p-[5.4px]  w-[180px]">VM Name #{{ index + 1 }}</th>
-              <td class="border-1 border-black text-black font-bold p-[5.4px]">{{ rowData[4] }}</td>
-              <th class="border-1 border-black text-black p-[5.4px] w-[154.521px]">Note</th>
+              <th class="border-1 border-black text-black p-2  w-[180px]">VM Name #{{ index + 1 }}</th>
+              <td class="border-1 border-black text-black font-bold p-2">{{ rowData[4] }}</td>
+              <th class="border-1 border-black text-black p-2 w-[154.521px]">Note</th>
             </tr>
             <tr class="text-black border-1 border-black">
               <th class="border-1 border-black text-black p-2">IP Private</th>
@@ -372,29 +372,29 @@ function copySubject() {
               <th class="border-1 border-black text-black p-2"></th>
             </tr>
             <tr class="bg-[#70ad47] text-black border-1 border-black">
-              <th class="border-1 border-black text-black p-[5.4px]">Specification</th>
-              <td class="border-1 border-black text-black p-[5.4px]"></td>
-              <th class="border-1 border-black text-black p-[5.4px]"></th>
+              <th class="border-1 border-black text-black p-2">Specification</th>
+              <td class="border-1 border-black text-black p-2"></td>
+              <th class="border-1 border-black text-black p-2"></th>
             </tr>
             <tr class="text-black border-1 border-black">
-              <th class="border-1 border-black text-black p-[5.4px]">vCPU (core)</th>
-              <td class="border-1 border-black text-black p-[5.4px]">{{ rowData[7] }}</td>
-              <th class="border-1 border-black text-black p-[5.4px]"></th>
+              <th class="border-1 border-black text-black p-2">vCPU (core)</th>
+              <td class="border-1 border-black text-black p-2">{{ rowData[7] }}</td>
+              <th class="border-1 border-black text-black p-2"></th>
             </tr>
             <tr class="text-black border-1 border-black">
-              <th class="border-1 border-black text-black p-[5.4px]">vRAM (GB)</th>
-              <td class="border-1 border-black text-black p-[5.4px]">{{ rowData[8] }}</td>
-              <th class="border-1 border-black text-black p-[5.4px]"></th>
+              <th class="border-1 border-black text-black p-2">vRAM (GB)</th>
+              <td class="border-1 border-black text-black p-2">{{ rowData[8] }}</td>
+              <th class="border-1 border-black text-black p-2"></th>
             </tr>
             <tr class="text-black border-1 border-black">
-              <th class="border-1 border-black text-black p-[5.4px]">vDisk (GB)</th>
-              <td class="border-1 border-black text-black p-[5.4px]">{{ rowData[9] }}</td>
-              <th class="border-1 border-black text-black p-[5.4px]"></th>
+              <th class="border-1 border-black text-black p-2">vDisk (GB)</th>
+              <td class="border-1 border-black text-black p-2">{{ rowData[9] }}</td>
+              <th class="border-1 border-black text-black p-2"></th>
             </tr>
             <tr class="text-black border-1 border-black">
-              <th class="border-1 border-black text-black p-[5.4px]">OS</th>
-              <td class="border-1 border-black text-black p-[5.4px]">{{ rowData[10] }}</td>
-              <th class="border-1 border-black text-black p-[5.4px]"></th>
+              <th class="border-1 border-black text-black p-2">OS</th>
+              <td class="border-1 border-black text-black p-2">{{ rowData[10] }}</td>
+              <th class="border-1 border-black text-black p-2"></th>
             </tr>
           </tbody>
         </table>
@@ -405,46 +405,46 @@ function copySubject() {
       <table class="text-left text-[14px] w-[600px]">
         <tbody>
           <tr class="bg-[#ffc000] text-black">
-            <th class="border-1 border-black text-black w-[118px] p-[5.4px] text-left align-top">Port</th>
-            <th class="border-1 border-black text-black p-[5.4px] w-[73.5px] text-left align-top">TCP or UDP</th>
-            <td class="border-1 border-black text-black w-[441px] font-bold p-[5.4px] text-left align-top">
+            <th class="border-1 border-black text-black w-[118px] p-2 text-left align-top">Port</th>
+            <th class="border-1 border-black text-black p-2 w-[73.5px] text-left align-top">TCP or UDP</th>
+            <td class="border-1 border-black text-black w-[441px] font-bold p-2 text-left align-top">
               Service or Protocol Name
             </td>
           </tr>
           <tr class="bg-white text-black border-1 border-black">
-            <th class="border-1 border-black p-[5.4px]">53</th>
-            <th class="border-1 border-black p-[5.4px]">TCP/UDP</th>
-            <td class="border-1 border-black p-[5.4px]">Domain Name System (DNS)</td>
+            <th class="border-1 border-black p-2">53</th>
+            <th class="border-1 border-black p-2">TCP/UDP</th>
+            <td class="border-1 border-black p-2">Domain Name System (DNS)</td>
           </tr>
           <tr class="bg-white text-black border-1 border-black">
-            <th class="border-1 border-black p-[5.4px]">80</th>
-            <th class="border-1 border-black p-[5.4px]">TCP</th>
-            <td class="border-1 border-black p-[5.4px]">Hypertext Transfer Protocol (HTTP)</td>
+            <th class="border-1 border-black p-2">80</th>
+            <th class="border-1 border-black p-2">TCP</th>
+            <td class="border-1 border-black p-2">Hypertext Transfer Protocol (HTTP)</td>
           </tr>
           <tr class="bg-white text-black border-1 border-black">
-            <th class="border-1 border-black p-[5.4px]">443</th>
-            <th class="border-1 border-black p-[5.4px]">TCP</th>
-            <td class="border-1 border-black p-[5.4px]">Secure Sockets Layer (SSL, or "HTTPS")</td>
+            <th class="border-1 border-black p-2">443</th>
+            <th class="border-1 border-black p-2">TCP</th>
+            <td class="border-1 border-black p-2">Secure Sockets Layer (SSL, or "HTTPS")</td>
           </tr>
           <tr class="bg-white text-black border-1 border-black">
-            <th class="border-1 border-black p-[5.4px]">123</th>
-            <th class="border-1 border-black p-[5.4px]">UDP</th>
-            <td class="border-1 border-black p-[5.4px]">Network Time Protocol (NTP)</td>
+            <th class="border-1 border-black p-2">123</th>
+            <th class="border-1 border-black p-2">UDP</th>
+            <td class="border-1 border-black p-2">Network Time Protocol (NTP)</td>
           </tr>
           <tr class="bg-white text-red-500 border-1 border-black">
-            <th class="border-1 border-black p-[5.4px]">14321</th>
-            <th class="border-1 border-black p-[5.4px]">TCP</th>
-            <td class="border-1 border-black p-[5.4px]">SSH (Secure Shell)</td>
+            <th class="border-1 border-black p-2">14321</th>
+            <th class="border-1 border-black p-2">TCP</th>
+            <td class="border-1 border-black p-2">SSH (Secure Shell)</td>
           </tr>
           <tr class="bg-white text-red-500 border-1 border-black">
-            <th class="border-1 border-black p-[5.4px]">14322</th>
-            <th class="border-1 border-black p-[5.4px]">TCP</th>
-            <td class="border-1 border-black p-[5.4px]">Remote Desktop Protocol (RDP)</td>
+            <th class="border-1 border-black p-2">14322</th>
+            <th class="border-1 border-black p-2">TCP</th>
+            <td class="border-1 border-black p-2">Remote Desktop Protocol (RDP)</td>
           </tr>
           <tr class="bg-white text-black border-1 border-black">
-            <th class="border-1 border-black p-[5.4px]">-</th>
-            <th class="border-1 border-black p-[5.4px]">ICMP</th>
-            <td class="border-1 border-black p-[5.4px]">Internet Control Message Protocol</td>
+            <th class="border-1 border-black p-2">-</th>
+            <th class="border-1 border-black p-2">ICMP</th>
+            <td class="border-1 border-black p-2">Internet Control Message Protocol</td>
           </tr>
         </tbody>
       </table>
