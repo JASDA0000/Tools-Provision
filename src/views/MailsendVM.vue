@@ -407,7 +407,7 @@ function copySubject() {
             <td class="border-1 border-black pr-[5.4px] pl-[5.4px]">Hypertext Transfer Protocol (HTTP)</td>
           </tr>
           <tr class="bg-white text-black border-1 border-black">
-            <th class="border-1 border-black pr-[5.4px] pl-[5.4px]">433</th>
+            <th class="border-1 border-black pr-[5.4px] pl-[5.4px]">443</th>
             <th class="border-1 border-black pr-[5.4px] pl-[5.4px]">TCP</th>
             <td class="border-1 border-black pr-[5.4px] pl-[5.4px]">Secure Sockets Layer (SSL, or "HTTPS")</td>
           </tr>
