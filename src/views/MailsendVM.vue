@@ -427,24 +427,14 @@ function copySubject() {
             <td class="border-1 border-black p-2">Secure Sockets Layer (SSL, or "HTTPS")</td>
           </tr>
           <tr class="bg-white text-black border-1 border-black">
-            <th class="border-1 border-black p-2">123</th>
-            <th class="border-1 border-black p-2">UDP</th>
-            <td class="border-1 border-black p-2">Network Time Protocol (NTP)</td>
-          </tr>
-          <tr class="bg-white text-red-500 border-1 border-black">
-            <th class="border-1 border-black p-2">14321</th>
-            <th class="border-1 border-black p-2">TCP</th>
-            <td class="border-1 border-black p-2">SSH (Secure Shell)</td>
-          </tr>
-          <tr class="bg-white text-red-500 border-1 border-black">
-            <th class="border-1 border-black p-2">14322</th>
-            <th class="border-1 border-black p-2">TCP</th>
-            <td class="border-1 border-black p-2">Remote Desktop Protocol (RDP)</td>
-          </tr>
-          <tr class="bg-white text-black border-1 border-black">
             <th class="border-1 border-black p-2">-</th>
             <th class="border-1 border-black p-2">ICMP</th>
             <td class="border-1 border-black p-2">Internet Control Message Protocol</td>
+          </tr>
+          <tr class="bg-white text-black border-1 border-black">
+            <th class="border-1 border-black p-2">123</th>
+            <th class="border-1 border-black p-2">UDP</th>
+            <td class="border-1 border-black p-2">Network Time Protocol (NTP)</td>
           </tr>
         </tbody>
       </table>
@@ -458,6 +448,7 @@ function copySubject() {
       <br />
       <p class="text-black text-left font-bold">หมายเหตุ : </p>
       <p class="text-black text-left">
+        - ปัจจุบันทาง INET จะปิดการเข้าถึงผ่าน Public ทั้งจากภายนอก VM และภายใน VM เพื่อความปลอดภัยในการใช้งานระบบ Cloud หากทางผู้ใช้บริการต้องการเข้าถึงผ่าน Public รบกวนแจ้งทาง INET ดำเนินการทาง noc@inet.co.th <br />
         - หากทางผู้ใช้บริการต้องการให้ทาง INET ดำเนินการ Backup VM รบกวนแจ้งทาง INET ดำเนินการทาง
         <a href="mailto:noc@inet.co.th" class="text-[#44656f]">noc@inet.co.th</a><br />
         - ปัจจุบันทาง INET มีการปิดสิทธิ์การเข้าใช้งาน Administrator และ Root และทำการสร้างบันชีขึ้นมาใหม่
