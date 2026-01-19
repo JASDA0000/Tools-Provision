@@ -3,7 +3,7 @@ import { ref } from 'vue'
 
 /** ====== CONFIG ====== */
 const API_BASE = 'https://backend-tools-provision.onrender.com' // <-- URL backend
-const columns = ['Z', 'AB', 'AC', 'AG', 'AH', 'AI', 'AJ']       // รวม 7 คอลัมน์ (ตรงกับตาราง)
+const columns = ['AB', 'AD', 'AE', 'AI', 'AJ', 'AK', 'AL']       // รวม 7 คอลัมน์ (ตรงกับตาราง)
 
 /** ====== STATE ====== */
 const inputs = ref([''])      // เลขแถว หรือ SO/POC ที่ผู้ใช้กรอก
