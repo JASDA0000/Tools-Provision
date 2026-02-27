@@ -5,7 +5,7 @@ import Card from '../components/Card.vue'
 
 /** ====== CONFIG ====== */
 const API_BASE = 'https://backend-tools-provision.onrender.com'
-const columns = ['C', 'O', 'P', 'Q', 'AB', 'AD', 'AE', 'AI', 'AJ', 'AK', 'AL', 'AV']
+const columns = ['C', 'O', 'P', 'Q', 'AA', 'AC', 'AD', 'AH', 'AI', 'AJ', 'AK', 'AU']
 // 0:C(SO), 1:O(Customer), 2:P(Start), 3:Q(End),
 // 4:Z(Name), 5:AB(Private), 6:AC(Public), 7:AG(vCPU), 8:AH(vRAM), 9:AI(vDisk), 10:AJ(OS), 11:AS(User)
 
