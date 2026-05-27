@@ -3,7 +3,7 @@ import { ref } from 'vue'
 
 /** ====== CONFIG ====== */
 const API_BASE = 'https://backend-tools-provision.onrender.com' // <-- URL backend
-const columns = ['AA', 'AC', 'AD', 'AH', 'AI', 'AJ', 'AK']       // รวม 7 คอลัมน์ (ตรงกับตาราง)
+const columns = ['AA', 'AC', 'AD', 'AH', 'AI', 'AJ', 'AK','AL']       // รวม 7 คอลัมน์ (ตรงกับตาราง)
 
 /** ====== STATE ====== */
 const inputs = ref([''])      // เลขแถว หรือ SO/POC ที่ผู้ใช้กรอก
@@ -160,6 +160,7 @@ async function fetchData() {
           <th class="border border-[#cccccc] px-2">Memory Size</th>
           <th class="border border-[#cccccc] px-2">Provisioned Space</th>
           <th class="border border-[#cccccc] px-2">Guest OS</th>
+          <th class="border border-[#cccccc] px-2">Mac Address</th>
         </tr>
       </thead>
       <tbody>
@@ -172,6 +173,7 @@ async function fetchData() {
           <td class="border border-[#cccccc] px-2">{{ row[4] }} GB</td>
           <td class="border border-[#cccccc] px-2">{{ row[5] }} GB</td>
           <td class="border border-[#cccccc] px-2">{{ row[6] }}</td>
+          <td class="border border-[#cccccc] px-2">{{ row[7] }}</td>
         </tr>
       </tbody>
     </table>
